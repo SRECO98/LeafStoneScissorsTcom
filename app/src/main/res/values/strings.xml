@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">LeafStoneScissorsTcom</string>
+    <string name="imagebackground">imageBackground</string>
+    <string name="rook">Rook</string>
+    <string name="leaf">Leaf</string>
+    <string name="sccissors">Sccissors</string>
+    <string name="logging">LOGGING</string>
+    <string name="email">Email...</string>
+    <string name="password">Password...</string>
+    <string name="no_account_register_now">No Account ? Register Now</string>
+    <string name="login">Login</string>
+    <string name="registering">REGISTERING</string>
+    <string name="emailRegister">Email...</string>
+    <string name="nickname">Nickname...</string>
+    <string name="passwordRegister">Password...</string>
+    <string name="repeat_password">Repeat password...</string>
+    <string name="register">Register</string>
+    <string name="already_have_an_account_login_now">Already have an account? Login now</string>
+    <string name="start_game">Start game</string>
+    <string name="welcome">Welcome</string>
+</resources>

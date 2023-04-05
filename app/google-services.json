@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1058044087571",
+    "project_id": "leafstonescissorstcom11",
+    "storage_bucket": "leafstonescissorstcom11.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1058044087571:android:12aad1415ea011baba9ee6",
+        "android_client_info": {
+          "package_name": "com.example.leafstonescissorstcom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1058044087571-jher72g02n0fr9oi256m8328p54cecii.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxuMo7ZC5-upJLXLkTo1jPpZCAnc0rZJQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1058044087571-jher72g02n0fr9oi256m8328p54cecii.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
