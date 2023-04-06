@@ -2,6 +2,7 @@ package com.example.leafstonescissorstcom
 
 import android.graphics.Color
 import android.os.Bundle
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import com.google.firebase.firestore.DocumentReference
@@ -23,6 +24,13 @@ class MainActivity : AppCompatActivity() {
         val buttonStone: AppCompatButton = findViewById(R.id.imageStone)
         val buttonLeaf: AppCompatButton = findViewById(R.id.imageLeaf)
         val buttonSccissors: AppCompatButton = findViewById(R.id.imageSccissors)
+        val textViewPlayerOneName: TextView = findViewById(R.id.playerOneName)
+        val textViewPlayerTwoName: TextView = findViewById(R.id.playerTwoName)
+        val player1Name = intent.getStringExtra("player1Name")
+        val player2Name = intent.getStringExtra("player2Name")
+
+        textViewPlayerOneName.text = player1Name
+        textViewPlayerTwoName.text = player2Name
 
         buttonStone.setOnClickListener {
             buttonStone.setBackgroundColor(Color.argb(58, 198, 182, 180))
