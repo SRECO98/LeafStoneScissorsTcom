@@ -1,24 +1,17 @@
 package com.example.leafstonescissorstcom
 
-import android.annotation.SuppressLint
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class StartActivity : AppCompatActivity() {
 
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-    var playerOneName: String = ""
-    var playerTwoName: String = ""
+    private var roomData = hashMapOf("player1" to "value", "player2" to "Value2", "status" to "default")
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,31 +35,22 @@ class StartActivity : AppCompatActivity() {
     private fun matchmake(playerName: String) {
         val roomsRef = db.collection("rooms")
         val query = roomsRef.whereEqualTo("status", "open").limit(1)
-
         query.get()
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
-                    //save player name to send as intent
-                    playerOneName = playerName
+
 
                     // No open rooms found, create a new room
                     createRoom(playerName)
-                    Log.i("TAG", "Document is:" + documents.isEmpty.toString())
-                    Log.i("TAG", "Document is:" + documents.isEmpty.toString())
-                    Log.i("TAG", "Document is:" + documents.isEmpty.toString())
-                    Log.i("TAG", "Document is:" + documents.isEmpty.toString())
-                    Log.i("TAG", "Document is:" + documents.isEmpty.toString())
                     Log.i("TAG", "Document is:" + documents.isEmpty.toString())
                 } else {
                     // Found an open room, join the room
                     val room = documents.first()
                     val roomId = room.id
 
-                    //save player name to send as intent
-                    playerTwoName = playerName
 
                     // Add the player to the room
-                    joinRoom(roomId, playerName)
+                    joinRoom(roomId, 2, playerName)
                 }
             }
             .addOnFailureListener { exception ->
@@ -77,63 +61,78 @@ class StartActivity : AppCompatActivity() {
     private fun createRoom(playerName: String) {
         val roomsRef = db.collection("rooms")
 
-        val roomData = hashMapOf(
+        roomData = hashMapOf(
             "player1" to playerName,
+            "player2" to "unknown",
             "status" to "open"
         )
+        Log.i("TAG", "roomData: $roomData")
 
         roomsRef.add(roomData)
             .addOnSuccessListener { documentReference ->
                 Log.d("TAG", "Room created with ID: ${documentReference.id}")
                 // Join the room as the first player
-                joinRoom(documentReference.id, playerName)
+                joinRoom(documentReference.id, player = 1, playerName)
             }
             .addOnFailureListener { exception ->
                 Log.e("TAG", "Error creating room: ", exception)
             }
-
-        Log.i("TAG", roomData.toString())
-        Log.i("TAG", roomData.toString())
-        Log.i("TAG", roomData.toString())
-        Log.i("TAG", roomData.toString())
-        Log.i("TAG", roomData.toString())
-        Log.i("TAG", roomData.toString())
-        Log.i("TAG", roomData.toString())
-        Log.i("TAG", roomData.toString())
     }
 
-    private fun joinRoom(roomId: String, playerName: String) {
+    private fun joinRoom(roomId: String, player: Int, playerName: String) {
         val roomsRef = db.collection("rooms").document(roomId)
-
-        // Update the room data to add the player as the second player
-        val roomData = hashMapOf(
-            "player2" to playerName,
-            "status" to "full"
-        )
-
-        roomsRef.update(roomData as Map<String, Any>)
+        var player1NameFromFirebase: String? = "unknown"
+        roomsRef.get()
             .addOnSuccessListener {
-                Log.d("TAG", "Joined room with ID: $roomId")
-                // Navigate to the game activity
-                val intent = Intent(this, MainActivity::class.java).apply {
-                    putExtra("room_id", roomId)
-                    putExtra("player1Name", playerOneName)
-                    putExtra("player2Name", playerTwoName)
+                Log.i("TAG", "Getting data successed")
+                player1NameFromFirebase = it.getString("player1")
+            }
+            .addOnFailureListener {
+                Log.i("TAG", "Getting data failed")
+            }
+
+        if (player == 2) {
+            // Update the room data to add the player as the second player
+            roomData = hashMapOf(
+                "player2" to playerName,
+                "status" to "full"
+            )
+            Log.i("TAG", "roomData: $roomData")
+
+            roomsRef.update(roomData as Map<String, Any>)
+                .addOnSuccessListener {
+                    Log.d("TAG", "Joined room with ID: $roomId")
+                    // Navigate to the game activity
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.putExtra("player1Name", player1NameFromFirebase)
+                    intent.putExtra("player2Name", playerName)
+                    intent.putExtra("room_id", roomId)
+                    intent.putExtra("player", player)
+                    startActivity(intent)
                 }
-                startActivity(intent)
-            }
-            .addOnFailureListener { exception ->
-                Log.e("TAG", "Error joining room: ", exception)
-            }
+                .addOnFailureListener { exception ->
+                    Log.e("TAG", "Error joining room: ", exception)
+                }
+        } else {
+            val roomsRef2 = db.collection("rooms").document(roomId)
+            var statusOfRoom: String
+            var player2NameFromFB: String
 
-        Log.i("TAG2", roomData.toString())
-        Log.i("TAG2", roomData.toString())
-        Log.i("TAG2", roomData.toString())
-        Log.i("TAG2", roomData.toString())
-        Log.i("TAG2", roomData.toString())
-        Log.i("TAG2", roomData.toString())
-        Log.i("TAG2", roomData.toString())
-        Log.i("TAG2", roomData.toString())
+            roomsRef2.addSnapshotListener { value, _ ->
+                statusOfRoom = value?.getString("status")!!
+                player2NameFromFB = value.getString("player2")!!
+                if (statusOfRoom == "full") {
+                    val intent = Intent(this, MainActivity::class.java).apply {
+                        putExtra("player1Name", playerName)
+                        putExtra("player2Name", player2NameFromFB)
+                        putExtra("room_id", roomId)
+                        putExtra("player", player)
+                        Log.i("TAG4", "vALUE OF PLAYER 1 NAME $playerName")
+                        Log.i("TAG4", "vALUE OF PLAYER 2 NAME $player2NameFromFB")
+                    }
+                    startActivity(intent)
+                }
+            }
+        }
     }
-
 }

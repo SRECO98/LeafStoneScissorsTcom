@@ -21,4 +21,7 @@
     <string name="player_2">Player 2:</string>
     <string name="player_1">Player 1:</string>
     <string name="vs">VS</string>
+    <string name="grgrgr">-</string>
+    <string name="_0">0</string>
+    <string name="go">GO</string>
 </resources>
