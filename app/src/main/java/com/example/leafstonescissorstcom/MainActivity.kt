@@ -2,6 +2,7 @@ package com.example.leafstonescissorstcom
 
 import android.graphics.Color
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
@@ -9,10 +10,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlin.math.log
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     lateinit var roomsScoreRef: CollectionReference
     lateinit var roomsChooseRef: CollectionReference
@@ -28,6 +29,7 @@ class MainActivity : AppCompatActivity() {
         val buttonGo: AppCompatButton = findViewById(R.id.buttonChoose)
         val textViewPlayerOneName: TextView = findViewById(R.id.playerOneName)
         val textViewPlayerTwoName: TextView = findViewById(R.id.playerTwoName)
+        val textViewTimer: TextView = findViewById(R.id.textViewTimer)
         val player1Name = intent.getStringExtra("player1Name")
         val player2Name = intent.getStringExtra("player2Name")
         val roomId: String = intent.getStringExtra("room_id")!!
@@ -65,7 +67,27 @@ class MainActivity : AppCompatActivity() {
         buttonGo.setOnClickListener {
             saveChoose(player)
         }
+
+        timer = object : CountDownTimer(8000, 1000){
+            override fun onTick(remaining: Long) {
+                if(remaining < 4000){
+                    textViewTimer.setTextColor(Color.argb(255,255,0,0))
+                }
+                if(remaining < 1000){
+                    return
+                }
+                textViewTimer.text = ((remaining/1000).toString())
+            }
+
+            override fun onFinish() {
+                textViewTimer.text = "8"
+                textViewTimer.setTextColor(Color.argb(255,251,239,2))
+                loadChoose(player)
+            }
+        }
     }
+
+
 
     private fun saveScores(){
 
@@ -140,7 +162,118 @@ class MainActivity : AppCompatActivity() {
                 }
             }
     }
-    private fun loadChoose(){
+    private fun loadChoose(player: Int){
+        var playerOneChoose = "0"
+        var playertwoChoose = "0"
+        roomsChooseRef.document(id).get()
+            .addOnSuccessListener {
+                Log.i("TAG", "Getting choose data successed")
+                playerOneChoose = it.getString("choosePlayer1")!!
+                playertwoChoose = it.getString("choosePlayer2")!!
+            }
+            .addOnFailureListener {
+                Log.i("TAG", "Getting choose data failed")
+            }
+        calculateWinner(playerOneChoose.toInt(), playertwoChoose.toInt(), player)
+    }
 
+    private fun calculateWinner(playerOneChoose: Int, playerTwoChoose: Int, player: Int){
+        var scorePlayerOne = ""
+        if(player == 1){
+            if(playerOneChoose == 1){
+                //dodati else, ili 4tu petlju ako ne izabere slicicu drugi igrac...
+                if(playerTwoChoose == 1){
+                    scorePlayerOne = "draw"
+                }else if(playerTwoChoose == 2){
+                    scorePlayerOne = "defeat"
+                }else{
+                    scorePlayerOne = "victory"
+                }
+
+            }else if(playerOneChoose == 2){
+
+                if(playerTwoChoose == 1){
+                    scorePlayerOne = "victory"
+                }else if(playerTwoChoose == 2){
+                    scorePlayerOne = "draw"
+                }else{
+                    scorePlayerOne = "defeat"
+                }
+            }else if(playerOneChoose == 3){
+
+                if(playerTwoChoose == 1){
+                    scorePlayerOne = "defeat"
+                }else if(playerTwoChoose == 2){
+                    scorePlayerOne = "victory"
+                }else{
+                    scorePlayerOne = "draw"
+                }
+            }else{
+                if(playerTwoChoose != 0){
+                    scorePlayerOne = "defeat"
+                }else{
+                    scorePlayerOne = "draw"
+                }
+            }
+
+        }else if(player == 2){
+
+            if(playerTwoChoose == 1){
+
+                if(playerOneChoose == 1){
+
+                }else if(playerOneChoose == 2){
+
+                }else if(playerOneChoose == 3){
+
+                }else{
+
+                }
+
+            }else if(playerTwoChoose == 2){
+
+                if(playerOneChoose == 1){
+
+                }else if(playerOneChoose == 2){
+
+                }else if(playerOneChoose == 3){
+
+                }else{
+
+                }
+
+            }else if(playerTwoChoose == 3){
+
+                if(playerOneChoose == 1){
+
+                }else if(playerOneChoose == 2){
+
+                }else if(playerOneChoose == 3){
+
+                }else{
+
+                }
+
+            }else{
+
+            }
+
+        }else{
+            Toast.makeText(this, "External error! Soon will be fixed", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updateScore(){
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+        timer.start()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        timer.cancel()
     }
 }
