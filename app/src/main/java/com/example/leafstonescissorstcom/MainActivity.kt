@@ -15,20 +15,28 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-    lateinit var roomsScoreRef: CollectionReference
-    lateinit var roomsChooseRef: CollectionReference
-    var playerChoose = "0"
+    private lateinit var roomsScoreRef: CollectionReference
+    private lateinit var roomsChooseRef: CollectionReference
+    private var playerChoose = "0"
+    private lateinit var textViewPlayerOneScore: TextView
+    private lateinit var textViewPlayerTwoScore: TextView
+    private lateinit var buttonStone: AppCompatButton
+    private lateinit var buttonLeaf: AppCompatButton
+    private lateinit var buttonSccissors: AppCompatButton
+    private lateinit var buttonGo: AppCompatButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val buttonStone: AppCompatButton = findViewById(R.id.imageStone)
-        val buttonLeaf: AppCompatButton = findViewById(R.id.imageLeaf)
-        val buttonSccissors: AppCompatButton = findViewById(R.id.imageSccissors)
-        val buttonGo: AppCompatButton = findViewById(R.id.buttonChoose)
+        buttonStone = findViewById(R.id.imageStone)
+        buttonLeaf = findViewById(R.id.imageLeaf)
+        buttonSccissors = findViewById(R.id.imageSccissors)
+        buttonGo = findViewById(R.id.buttonChoose)
         val textViewPlayerOneName: TextView = findViewById(R.id.playerOneName)
         val textViewPlayerTwoName: TextView = findViewById(R.id.playerTwoName)
+        textViewPlayerOneScore = findViewById(R.id.playerOneScore)
+        textViewPlayerTwoScore = findViewById(R.id.playerTwoScore)
         val textViewTimer: TextView = findViewById(R.id.textViewTimer)
         val player1Name = intent.getStringExtra("player1Name")
         val player2Name = intent.getStringExtra("player2Name")
@@ -37,14 +45,11 @@ class MainActivity : AppCompatActivity() {
         roomsScoreRef = db.collection("rooms").document(roomId).collection("scores") // ???????????????????????
         roomsChooseRef = db.collection("rooms").document(roomId).collection("choose") // ???????????????????????
         createRoomForPicturesChoice()
-        Log.i("TAG4", "VALUE ON NEXT ACTIVITY IS: ${player1Name}")
-        Log.i("TAG4", "VALUE ON NEXT ACTIVITY IS: ${player2Name}")
+        Log.i("TAG4", "VALUE ON NEXT ACTIVITY IS: $player1Name")
+        Log.i("TAG4", "VALUE ON NEXT ACTIVITY IS: $player2Name")
 
         textViewPlayerOneName.text = player1Name
         textViewPlayerTwoName.text = player2Name
-
-        var playerOneCurrentScore = 0
-        var playerTwoCurrentScore = 0
 
         buttonStone.setOnClickListener {
             buttonStone.setBackgroundColor(Color.argb(58, 198, 182, 180))
@@ -65,37 +70,50 @@ class MainActivity : AppCompatActivity() {
             playerChoose = "3"
         }
         buttonGo.setOnClickListener {
+            buttonGo.isEnabled = false //turn off buttons because user checked his choice
+            buttonStone.isEnabled = false
+            buttonLeaf.isEnabled = false
+            buttonSccissors.isEnabled = false
+            buttonGo.setTextColor(Color.WHITE)
+            buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
             saveChoose(player)
         }
 
-        timer = object : CountDownTimer(8000, 1000){
+        timerFun(textViewTimer, player)
+    }
+
+    private fun timerFun (textViewTimer: TextView, player: Int){
+        timer = object : CountDownTimer(9000, 1000) {
             override fun onTick(remaining: Long) {
-                if(remaining < 4000){
-                    textViewTimer.setTextColor(Color.argb(255,255,0,0))
+                if (remaining < 4000) {
+                    textViewTimer.setTextColor(Color.argb(255, 255, 0, 0))
                 }
-                if(remaining < 1000){
+                if (remaining < 1000) {
                     return
                 }
-                textViewTimer.text = ((remaining/1000).toString())
+                textViewTimer.text = ((remaining / 1000).toString())
             }
 
             override fun onFinish() {
-                textViewTimer.text = "8"
-                textViewTimer.setTextColor(Color.argb(255,251,239,2))
+                textViewTimer.text = "9"
+                textViewTimer.setTextColor(Color.argb(255, 251, 239, 2))
                 loadChoose(player)
+                if (Integer.parseInt(textViewPlayerOneScore.text.toString()) < 5 && Integer.parseInt(
+                        textViewPlayerTwoScore.text.toString()) < 5){
+                    buttonGo.isEnabled = true //tur on buttons again cuz new timer will begin
+                    buttonStone.isEnabled = true
+                    buttonLeaf.isEnabled = true
+                    buttonSccissors.isEnabled = true
+                    buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                    buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                    buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                    buttonGo.setTextColor(Color.BLACK)
+                    buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
+                    timer.start()
+                }
             }
         }
     }
-
-
-
-    private fun saveScores(){
-
-    }
-    private fun loadScores(){
-
-    }
-
 
     private var chooseRoom = hashMapOf(
         "choosePlayer1" to "unknown",
@@ -103,6 +121,7 @@ class MainActivity : AppCompatActivity() {
     )
     private fun saveChoose(player: Int){
         val roomsChooseRef2 = roomsChooseRef.document(id)
+        Log.i("TAG", "document id: $id")
         //updating picture of player one in room
         if(player == 1){
             chooseRoom = hashMapOf(
@@ -163,56 +182,123 @@ class MainActivity : AppCompatActivity() {
             }
     }
     private fun loadChoose(player: Int){
-        var playerOneChoose = "0"
-        var playertwoChoose = "0"
+        var playerOneChoose: String
+        var playertwoChoose: String
         roomsChooseRef.document(id).get()
             .addOnSuccessListener {
                 Log.i("TAG", "Getting choose data successed")
                 playerOneChoose = it.getString("choosePlayer1")!!
                 playertwoChoose = it.getString("choosePlayer2")!!
+                if(playerOneChoose == "unknown2" && playertwoChoose == "unknown2" ){
+                    playerOneChoose = "0"
+                    playertwoChoose = "0"
+                }else if(playerOneChoose == "unknown2"){
+                    playerOneChoose = "0"
+                }else if(playertwoChoose == "unknown2"){
+                    playertwoChoose = "0"
+                }
+                calculateWinner(playerOneChoose.toInt(), playertwoChoose.toInt(), player)
             }
             .addOnFailureListener {
                 Log.i("TAG", "Getting choose data failed")
             }
-        calculateWinner(playerOneChoose.toInt(), playertwoChoose.toInt(), player)
     }
 
     private fun calculateWinner(playerOneChoose: Int, playerTwoChoose: Int, player: Int){
         var scorePlayerOne = ""
+        var scorePlayerTwo = ""
+        Log.i("TAG", "Chooses: $playerOneChoose and $playerTwoChoose")
         if(player == 1){
             if(playerOneChoose == 1){
-                //dodati else, ili 4tu petlju ako ne izabere slicicu drugi igrac...
-                if(playerTwoChoose == 1){
-                    scorePlayerOne = "draw"
-                }else if(playerTwoChoose == 2){
-                    scorePlayerOne = "defeat"
-                }else{
-                    scorePlayerOne = "victory"
+
+                when (playerTwoChoose) {
+                    1 -> {
+                        scorePlayerOne = "draw"
+                        scorePlayerTwo = "draw"
+                        buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                    }
+                    2 -> {
+                        scorePlayerOne = "defeat"
+                        scorePlayerTwo = "victory"
+                        buttonStone.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    3 -> {
+                        scorePlayerOne = "victory"
+                        scorePlayerTwo = "defeat"
+                        buttonStone.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    else -> {
+                        scorePlayerOne = "victory"
+                        scorePlayerTwo = "defeat"
+                        buttonStone.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                    }
                 }
 
             }else if(playerOneChoose == 2){
 
-                if(playerTwoChoose == 1){
-                    scorePlayerOne = "victory"
-                }else if(playerTwoChoose == 2){
-                    scorePlayerOne = "draw"
-                }else{
-                    scorePlayerOne = "defeat"
+                when (playerTwoChoose) {
+                    1 -> {
+                        scorePlayerOne = "victory"
+                        scorePlayerTwo = "defeat"
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    2 -> {
+                        scorePlayerOne = "draw"
+                        scorePlayerTwo = "draw"
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                    }
+                    3 -> {
+                        scorePlayerOne = "defeat"
+                        scorePlayerTwo = "victory"
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    else -> {
+                        scorePlayerOne = "victory"
+                        scorePlayerTwo = "defeat"
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                    }
                 }
             }else if(playerOneChoose == 3){
 
-                if(playerTwoChoose == 1){
-                    scorePlayerOne = "defeat"
-                }else if(playerTwoChoose == 2){
-                    scorePlayerOne = "victory"
-                }else{
-                    scorePlayerOne = "draw"
+                when (playerTwoChoose) {
+                    1 -> {
+                        scorePlayerOne = "defeat"
+                        scorePlayerTwo = "victory"
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    2 -> {
+                        scorePlayerOne = "victory"
+                        scorePlayerTwo = "defeat"
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    3 -> {
+                        scorePlayerOne = "draw"
+                        scorePlayerTwo = "draw"
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                    }
+                    else -> {
+                        scorePlayerOne = "victory"
+                        scorePlayerTwo = "defeat"
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                    }
                 }
             }else{
                 if(playerTwoChoose != 0){
                     scorePlayerOne = "defeat"
+                    scorePlayerTwo = "victory"
+                    buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 0))
                 }else{
                     scorePlayerOne = "draw"
+                    scorePlayerTwo = "draw"
+                    buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                    buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                    buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 255))
                 }
             }
 
@@ -220,51 +306,125 @@ class MainActivity : AppCompatActivity() {
 
             if(playerTwoChoose == 1){
 
-                if(playerOneChoose == 1){
-
-                }else if(playerOneChoose == 2){
-
-                }else if(playerOneChoose == 3){
-
-                }else{
-
+                when (playerOneChoose) {
+                    1 -> {
+                        scorePlayerTwo = "draw"
+                        scorePlayerOne = "draw"
+                        buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                    }
+                    2 -> {
+                        scorePlayerTwo = "defeat"
+                        scorePlayerOne = "victory"
+                        buttonStone.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    3 -> {
+                        scorePlayerTwo = "victory"
+                        scorePlayerOne = "defeat"
+                        buttonStone.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    else -> {
+                        scorePlayerOne = "victory"
+                        scorePlayerTwo = "defeat"
+                        buttonStone.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                    }
                 }
 
             }else if(playerTwoChoose == 2){
 
-                if(playerOneChoose == 1){
-
-                }else if(playerOneChoose == 2){
-
-                }else if(playerOneChoose == 3){
-
-                }else{
-
+                when (playerOneChoose) {
+                    1 -> {
+                        scorePlayerTwo = "victory"
+                        scorePlayerOne = "defeat"
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    2 -> {
+                        scorePlayerTwo = "draw"
+                        scorePlayerOne = "draw"
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                    }
+                    3 -> {
+                        scorePlayerTwo = "defeat"
+                        scorePlayerOne = "victory"
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    else -> {
+                        scorePlayerTwo = "victory"
+                        scorePlayerOne = "defeat"
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                    }
                 }
 
             }else if(playerTwoChoose == 3){
 
-                if(playerOneChoose == 1){
-
-                }else if(playerOneChoose == 2){
-
-                }else if(playerOneChoose == 3){
-
-                }else{
-
+                when (playerOneChoose) {
+                    1 -> {
+                        scorePlayerTwo = "defeat"
+                        scorePlayerOne = "victory"
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    2 -> {
+                        scorePlayerTwo = "victory"
+                        scorePlayerOne = "defeat"
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    }
+                    3 -> {
+                        scorePlayerTwo = "draw"
+                        scorePlayerOne = "draw"
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                    }
+                    else -> {
+                        scorePlayerTwo = "victory"
+                        scorePlayerOne = "defeat"
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 0, 0, 255))
+                    }
                 }
 
             }else{
-
+                if(playerOneChoose != 0){
+                    scorePlayerTwo = "defeat"
+                    scorePlayerOne = "victory"
+                    buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                }else{
+                    scorePlayerTwo = "draw"
+                    scorePlayerOne = "draw"
+                    buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                    buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                    buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 255))
+                }
             }
 
         }else{
             Toast.makeText(this, "External error! Soon will be fixed", Toast.LENGTH_SHORT).show()
         }
+
+        Log.i("TAG", "Scores: $scorePlayerOne and $scorePlayerTwo")
+        Log.i("TAG", "Scores: $scorePlayerOne and $scorePlayerTwo")
+        updateScore(scorePlayerOne, scorePlayerTwo)
     }
 
-    private fun updateScore(){
-
+    private fun updateScore(scorePlayerOne: String, scorePlayerTwo: String){
+        Log.i("TAG UPDATE","Scores: $scorePlayerOne and $scorePlayerTwo")
+        when (scorePlayerOne) {
+            "victory" -> {
+                var currentValuePlayerOne: Int = Integer.parseInt(textViewPlayerOneScore.text.toString())
+                currentValuePlayerOne = currentValuePlayerOne + 1
+                textViewPlayerOneScore.text = currentValuePlayerOne.toString()
+            }
+            "defeat" -> {
+                var currentValuePlayerTwo: Int = Integer.parseInt(textViewPlayerTwoScore.text.toString())
+                currentValuePlayerTwo = currentValuePlayerTwo + 1
+                textViewPlayerTwoScore.text = currentValuePlayerTwo.toString()
+            }
+            else -> {
+                //draw
+            }
+        }
     }
 
     override fun onStart() {

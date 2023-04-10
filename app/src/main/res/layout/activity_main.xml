@@ -228,7 +228,7 @@
         android:textStyle="bold"
         android:background="#45C299"
         android:textSize="26sp"
-        android:text="@string/go"/>
+        android:text="@string/pick"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,6 +8,22 @@
     tools:context=".StartActivity"
     android:background="@color/black">
 
+    <TextView
+        android:id="@+id/textViewWelcomePlayer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#021155"
+        android:textColor="@color/white"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="48dp"
+        android:textSize="22sp"
+        android:gravity="center"
+        android:text="@string/welcome"
+        app:layout_constraintBottom_toTopOf="@+id/buttonStartGame"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonStartGame"
         android:layout_width="match_parent"
@@ -24,19 +40,19 @@
         android:text="@string/start_game"/>
 
     <TextView
-        android:id="@+id/textViewWelcomePlayer"
+        android:id="@+id/textViewWaitPlayer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#021155"
         android:textColor="@color/white"
         android:layout_marginStart="48dp"
         android:layout_marginEnd="48dp"
-        android:textSize="22sp"
+        android:layout_marginTop="18dp"
+        android:textSize="16sp"
         android:gravity="center"
-        android:text="@string/welcome"
-        app:layout_constraintBottom_toTopOf="@+id/buttonStartGame"
+        android:text="@string/waiting_for_second_player"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/buttonStartGame" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

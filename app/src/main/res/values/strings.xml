@@ -25,4 +25,6 @@
     <string name="_0">0</string>
     <string name="go">GO</string>
     <string name="___8">8</string>
+    <string name="pick">PICK</string>
+    <string name="waiting_for_second_player">Waiting for second player...</string>
 </resources>

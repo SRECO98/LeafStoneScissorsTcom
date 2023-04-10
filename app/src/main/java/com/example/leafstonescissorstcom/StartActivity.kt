@@ -1,17 +1,21 @@
 package com.example.leafstonescissorstcom
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.view.isVisible
 import com.google.firebase.firestore.FirebaseFirestore
 
 class StartActivity : AppCompatActivity() {
 
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private var roomData = hashMapOf("player1" to "value", "player2" to "Value2", "status" to "default")
+    private lateinit var textViewWaiting: TextView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,7 +23,7 @@ class StartActivity : AppCompatActivity() {
         setContentView(R.layout.activity_start)
 
         val buttonStartGame = findViewById<AppCompatButton>(R.id.buttonStartGame)
-
+        textViewWaiting = findViewById(R.id.textViewWaitPlayer)
         val textViewWelcome = findViewById<TextView>(R.id.textViewWelcomePlayer)
         val playerName = intent.extras?.getString("name") ?: "No message found"
 
@@ -29,6 +33,9 @@ class StartActivity : AppCompatActivity() {
 
         buttonStartGame.setOnClickListener {
             matchmake(playerName)
+            buttonStartGame.isEnabled = false
+            buttonStartGame.setBackgroundColor(Color.argb(255, 169, 169, 169))
+            textViewWaiting.isVisible = true
         }
     }
 
