@@ -71,7 +71,9 @@ class StartActivity : AppCompatActivity() {
         roomData = hashMapOf(
             "player1" to playerName,
             "player2" to "unknown",
-            "status" to "open"
+            "status" to "open",
+            "choosePlayer1" to "unknown",
+            "choosePlayer2" to "unknown",
         )
         Log.i("TAG", "roomData: $roomData")
 
