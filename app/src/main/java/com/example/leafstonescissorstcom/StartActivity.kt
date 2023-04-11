@@ -72,8 +72,6 @@ class StartActivity : AppCompatActivity() {
             "player1" to playerName,
             "player2" to "unknown",
             "status" to "open",
-            "choosePlayer1" to "unknown",
-            "choosePlayer2" to "unknown",
         )
         Log.i("TAG", "roomData: $roomData")
 
@@ -127,7 +125,7 @@ class StartActivity : AppCompatActivity() {
             var statusOfRoom: String
             var player2NameFromFB: String
 
-            roomsRef2.addSnapshotListener { value, _ ->
+            roomsRef2.addSnapshotListener { value, _ -> //live follow when second user came so it can open new activity together
                 statusOfRoom = value?.getString("status")!!
                 player2NameFromFB = value.getString("player2")!!
                 if (statusOfRoom == "full") {

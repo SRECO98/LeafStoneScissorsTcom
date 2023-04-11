@@ -8,22 +8,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
-import com.google.firebase.database.MutableData
-import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Transaction
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import java.util.concurrent.TimeUnit
+import com.google.firebase.firestore.SetOptions
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-    private lateinit var roomsScoreRef: CollectionReference
-    private lateinit var roomsChooseRef: CollectionReference
+    private lateinit var roomsChooseRef: DocumentReference
     private var playerChoose = "0"
     private lateinit var textViewPlayerOneScore: TextView
     private lateinit var textViewPlayerTwoScore: TextView
@@ -31,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonLeaf: AppCompatButton
     private lateinit var buttonSccissors: AppCompatButton
     private lateinit var buttonGo: AppCompatButton
+    private lateinit var roomId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,13 +41,12 @@ class MainActivity : AppCompatActivity() {
         val textViewTimer: TextView = findViewById(R.id.textViewTimer)
         val player1Name = intent.getStringExtra("player1Name")
         val player2Name = intent.getStringExtra("player2Name")
-        val roomId: String = intent.getStringExtra("room_id")!!
+        roomId = intent.getStringExtra("room_id")!!
         val player:Int = intent.getIntExtra("player", 0)
-        roomsChooseRef = db.collection("rooms").document(roomId).collection("choose") // ???????????????????????
-        createRoomForPicturesChoice()
-
+        roomsChooseRef = db.collection("rooms").document(roomId)
         Log.i("TAG4", "VALUE ON NEXT ACTIVITY IS: $player1Name")
         Log.i("TAG4", "VALUE ON NEXT ACTIVITY IS: $player2Name")
+        createNewHasMapStore()
 
         textViewPlayerOneName.text = player1Name
         textViewPlayerTwoName.text = player2Name
@@ -77,13 +70,13 @@ class MainActivity : AppCompatActivity() {
             playerChoose = "3"
         }
         buttonGo.setOnClickListener {
+            saveChoose(player)
             buttonGo.isEnabled = false //turn off buttons because user checked his choice
             buttonStone.isEnabled = false
             buttonLeaf.isEnabled = false
             buttonSccissors.isEnabled = false
             buttonGo.setTextColor(Color.WHITE)
             buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
-            saveChoose(player)
         }
 
         timerFun(textViewTimer, player)
@@ -104,7 +97,6 @@ class MainActivity : AppCompatActivity() {
             override fun onFinish() {
                 textViewTimer.text = "9"
                 textViewTimer.setTextColor(Color.argb(255, 251, 239, 2))
-                loadChoose(player)
                 if (Integer.parseInt(textViewPlayerOneScore.text.toString()) < 5 && Integer.parseInt(
                         textViewPlayerTwoScore.text.toString()) < 5){
                     buttonGo.isEnabled = true //tur on buttons again cuz new timer will begin
@@ -116,26 +108,37 @@ class MainActivity : AppCompatActivity() {
                     buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
                     buttonGo.setTextColor(Color.BLACK)
                     buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
+                    playerChoose = "0"
                     timer.start()
                 }
+                loadChoose(player)
             }
         }
     }
 
     private var chooseRoom = hashMapOf(
         "choosePlayer1" to "unknown",
-        "choosePlayer2" to "unknown"
+        "choosePlayer2" to "unknown",
     )
+
+    private fun createNewHasMapStore() {
+        val roomsChooseRef2 = roomsChooseRef
+        roomsChooseRef2.set(chooseRoom as Map<String, Any>, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.i("Choose", "Successfully added picture choice")
+            }
+            .addOnFailureListener {
+                Log.i("Choose", "Failed while adding picture choice ${it.toString()}")
+            }
+    }
     private fun saveChoose(player: Int){
-        val roomsChooseRef2 = roomsChooseRef.document(id)
-        Log.i("TAG", "document id: $id")
         //updating picture of player one in room
         if(player == 1){
             chooseRoom = hashMapOf(
                 "choosePlayer1" to playerChoose
             )
 
-            roomsChooseRef2.update(chooseRoom as Map<String, Any>)
+            roomsChooseRef.update(chooseRoom as Map<String, Any>)
                 .addOnSuccessListener {
                     Log.i("Choose", "Successfully added picture choice")
                 }
@@ -148,130 +151,38 @@ class MainActivity : AppCompatActivity() {
                 "choosePlayer2" to playerChoose
             )
 
-            roomsChooseRef2.update(chooseRoom as Map<String, Any>)
-                .addOnSuccessListener {
-                    Log.i("Choose", "Successfully added picture choice")
-                }
-                .addOnFailureListener {
-                    Log.i("Choose", "Failed while adding picture choice")
-                }
+            try{
+                roomsChooseRef.update(chooseRoom as Map<String, Any>)
+                    .addOnSuccessListener {
+                        Log.i("Choose", "Successfully added picture choice")
+                    }
+                    .addOnFailureListener {
+                        Log.i("Choose", "Failed while adding picture choice")
+                    }
+            }catch (e: Exception){
+                Log.i("TAG", "EXCEPTION IS: ${e.toString()}")
+            }
+
         }
         if(playerChoose == "0"){ //if one of players didnt chose a picture.
             Toast.makeText(this, "Please, choose one of the pictures!", Toast.LENGTH_SHORT).show()
         }
-
     }
 
-    var id: String = "empty"
-    private fun createRoomForPicturesChoice(){
-
-        val query = roomsChooseRef.whereEqualTo("choosePlayer1", "unknown2").limit(1) //check did we created room, if value is changed we did.
-        query.get()
-            .addOnSuccessListener {documents ->
-                if(documents.isEmpty){
-                    chooseRoom = hashMapOf(
-                        "choosePlayer1" to "unknown2",
-                        "choosePlayer2" to "unknown2"
-                    )
-
-                    roomsChooseRef.add(chooseRoom)
-                        .addOnSuccessListener {   //making roon
-                            Log.d("TAG", "Room created with ID: ${it.id}")
-                            id = it.id
-                        }
-                        .addOnFailureListener {
-                            Log.e("TAG", "Error creating room: ", it)
-                        }
-                }else{
-                    id = documents.first().id
-                    Log.i("TAG", "Room is created already.")
-                }
-            }
-    }
-
-    /*private fun createRoomForPicturesChoice() {
-        try {
-            Firebase.firestore.runTransaction { transaction ->
-                val query = roomsChooseRef.whereEqualTo("choosePlayer1", "unknown2")
-                query.get().addOnSuccessListener { documents ->
-                    Log.i("TAG7", "Document is empty or not: ${documents.isEmpty}")
-                    if (documents.isEmpty) {
-                        chooseRoom = hashMapOf(
-                            "choosePlayer1" to "unknown2",
-                            "choosePlayer2" to "unknown2"
-                        )
-
-                        transaction.update(roomsChooseRef.document(chooseRoom),)
-
-                        roomsChooseRef.add(chooseRoom)
-                            .addOnSuccessListener {   //making roon
-                                Log.d("TAG", "Room created with ID: ${it.id}")
-                                id = it.id
-                            }
-                            .addOnFailureListener {
-                                Log.e("TAG", "Error creating room: ", it)
-                            }
-                    } else {
-                        id = documents.first().id
-                        Log.i("TAG", "Room is created already.")
-                    }
-                }
-            }
-        }catch (e: java.lang.Exception){
-            Log.i("TAG", e.toString())
-        }
-    }*/
-
-   /* private fun createRoomForPicturesChoice() {
-        val query = roomsChooseRef.whereEqualTo("choosePlayer1", "unknown2")
-
-        // Use a transaction to create or get the existing room
-        roomsChooseRef.runTransaction(object : Transaction.Handler {
-            override fun doTransaction(mutableData: MutableData): Transaction.Result {
-                // Check if the room already exists
-                val existingRoom = mutableData.children.firstOrNull { it.child("choosePlayer1").value == "unknown2" }
-                if (existingRoom != null) {
-                    id = existingRoom.key!!
-                    Log.i("TAG", "Room is created already.")
-                    return Transaction.success(mutableData)
-                }
-
-                // Create a new room
-                chooseRoom = hashMapOf(
-                    "choosePlayer1" to "unknown2",
-                    "choosePlayer2" to "unknown2"
-                )
-
-                val newRoomRef = roomsChooseRef.push()
-                newRoomRef.setValue(chooseRoom)
-                id = newRoomRef.key!!
-                Log.d("TAG", "Room created with ID: $id")
-
-                return Transaction.success(mutableData)
-            }
-
-            override fun onComplete(databaseError: DatabaseError?, committed: Boolean, dataSnapshot: DataSnapshot?) {
-                if (databaseError != null) {
-                    Log.e("TAG", "Transaction failed", databaseError.toException())
-                }
-            }
-        })
-    }*/
-    
     private fun loadChoose(player: Int){
         var playerOneChoose: String
         var playertwoChoose: String
-        roomsChooseRef.document(id).get()
+        roomsChooseRef.get()
             .addOnSuccessListener {
                 Log.i("TAG", "Getting choose data successed")
                 playerOneChoose = it.getString("choosePlayer1")!!
                 playertwoChoose = it.getString("choosePlayer2")!!
-                if(playerOneChoose == "unknown2" && playertwoChoose == "unknown2" ){
+                if(playerOneChoose == "unknown" && playertwoChoose == "unknown" ){
                     playerOneChoose = "0"
                     playertwoChoose = "0"
-                }else if(playerOneChoose == "unknown2"){
+                }else if(playerOneChoose == "unknown"){
                     playerOneChoose = "0"
-                }else if(playertwoChoose == "unknown2"){
+                }else if(playertwoChoose == "unknown"){
                     playertwoChoose = "0"
                 }
                 calculateWinner(playerOneChoose.toInt(), playertwoChoose.toInt(), player)
