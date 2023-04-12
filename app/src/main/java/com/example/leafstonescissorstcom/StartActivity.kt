@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.view.isVisible
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 class StartActivity : AppCompatActivity() {
 
@@ -125,21 +126,26 @@ class StartActivity : AppCompatActivity() {
             var statusOfRoom: String
             var player2NameFromFB: String
 
-            roomsRef2.addSnapshotListener { value, _ -> //live follow when second user came so it can open new activity together
+            register = roomsRef2.addSnapshotListener { value, _ -> //live follow when second user came so it can open new activity together
                 statusOfRoom = value?.getString("status")!!
                 player2NameFromFB = value.getString("player2")!!
                 if (statusOfRoom == "full") {
-                    val intent = Intent(this, MainActivity::class.java).apply {
-                        putExtra("player1Name", playerName)
-                        putExtra("player2Name", player2NameFromFB)
-                        putExtra("room_id", roomId)
-                        putExtra("player", player)
-                        Log.i("TAG4", "vALUE OF PLAYER 1 NAME $playerName")
-                        Log.i("TAG4", "vALUE OF PLAYER 2 NAME $player2NameFromFB")
-                    }
-                    startActivity(intent)
+                    newAcitvity(playerName, player2NameFromFB, roomId, player)
                 }
             }
         }
+    }
+    private lateinit var register: ListenerRegistration
+    private fun newAcitvity(playerName: String, player2NameFromFB: String, roomId: String, player: Int){
+        register.remove()
+        val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra("player1Name", playerName)
+            putExtra("player2Name", player2NameFromFB)
+            putExtra("room_id", roomId)
+            putExtra("player", player)
+            Log.i("TAG4", "vALUE OF PLAYER 1 NAME $playerName")
+            Log.i("TAG4", "vALUE OF PLAYER 2 NAME $player2NameFromFB")
+        }
+        startActivity(intent)
     }
 }

@@ -1,16 +1,23 @@
 package com.example.leafstonescissorstcom
 
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.view.LayoutInflater
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,6 +32,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonSccissors: AppCompatButton
     private lateinit var buttonGo: AppCompatButton
     private lateinit var roomId: String
+    private var player1Name: String? = ""
+    private var player2Name: String? = ""
+
+    //Elements of dialog:
+    private lateinit var textViewWinOrLose: TextView
+    private lateinit var textViewPlayerOneName: TextView
+    private lateinit var textViewPlayerTwoName: TextView
+    private lateinit var textViewPlayerVSPlayer1: TextView
+    private lateinit var textViewPlayerVSPlayer2: TextView
+    private lateinit var textViewTotalWinsScore: TextView
+    private lateinit var textViewTotalLosesScore: TextView
+    private lateinit var buttonRematch: AppCompatButton
+    private lateinit var buttonNewGame: AppCompatButton
+
+    //fix chooice color, to fast covering choice of another player (blue and red) make it a little longer, when same choice make it half red/half blue somehow
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,8 +61,8 @@ class MainActivity : AppCompatActivity() {
         textViewPlayerOneScore = findViewById(R.id.playerOneScore)
         textViewPlayerTwoScore = findViewById(R.id.playerTwoScore)
         val textViewTimer: TextView = findViewById(R.id.textViewTimer)
-        val player1Name = intent.getStringExtra("player1Name")
-        val player2Name = intent.getStringExtra("player2Name")
+        player1Name = intent.getStringExtra("player1Name")
+        player2Name = intent.getStringExtra("player2Name")
         roomId = intent.getStringExtra("room_id")!!
         val player:Int = intent.getIntExtra("player", 0)
         roomsChooseRef = db.collection("rooms").document(roomId)
@@ -70,7 +92,14 @@ class MainActivity : AppCompatActivity() {
             playerChoose = "3"
         }
         buttonGo.setOnClickListener {
-            saveChoose(player)
+            GlobalScope.launch {
+                try {
+                    saveChoose(player)
+                }catch (e: Exception){
+                    Log.i("TAG", "exception global scope coroutine: ${e.toString()}")
+                }
+            }
+
             buttonGo.isEnabled = false //turn off buttons because user checked his choice
             buttonStone.isEnabled = false
             buttonLeaf.isEnabled = false
@@ -85,11 +114,13 @@ class MainActivity : AppCompatActivity() {
     private fun timerFun (textViewTimer: TextView, player: Int){
         timer = object : CountDownTimer(9000, 1000) {
             override fun onTick(remaining: Long) {
+                if(remaining > 7000 && remaining < 9100){
+                    buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                    buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                    buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                }
                 if (remaining < 4000) {
                     textViewTimer.setTextColor(Color.argb(255, 255, 0, 0))
-                }
-                if (remaining < 1000) {
-                    return
                 }
                 textViewTimer.text = ((remaining / 1000).toString())
             }
@@ -103,13 +134,12 @@ class MainActivity : AppCompatActivity() {
                     buttonStone.isEnabled = true
                     buttonLeaf.isEnabled = true
                     buttonSccissors.isEnabled = true
-                    buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
-                    buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
-                    buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
                     buttonGo.setTextColor(Color.BLACK)
                     buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
                     playerChoose = "0"
                     timer.start()
+                }else{
+                    dialogGameOver(player)
                 }
                 loadChoose(player)
             }
@@ -121,7 +151,69 @@ class MainActivity : AppCompatActivity() {
         "choosePlayer2" to "unknown",
     )
 
-    private fun createNewHasMapStore() {
+    @SuppressLint("SetTextI18n")
+    private fun dialogGameOver(player: Int){
+
+        val builder = AlertDialog.Builder(this)
+        val customView = LayoutInflater.from(this).inflate(R.layout.custom_layout_dialog, null)
+        builder.setView(customView)
+
+        //Dialog View elements
+        textViewWinOrLose = customView.findViewById(R.id.textViewWinOrLose)
+        textViewPlayerOneName = customView.findViewById(R.id.textViewPlayerOneName)
+        textViewPlayerTwoName = customView.findViewById(R.id.textViewPlayerTwoName)
+        textViewPlayerVSPlayer1 = customView.findViewById(R.id.textViewPlayerVSPlayer1)
+        textViewPlayerVSPlayer2 = customView.findViewById(R.id.textViewPlayerVSPlayer2)
+        textViewTotalWinsScore = customView.findViewById(R.id.textViewTotalWinsScore)
+        textViewTotalLosesScore = customView.findViewById(R.id.textViewTotalLosesScore)
+        textViewTotalLosesScore = customView.findViewById(R.id.textViewTotalLosesScore)
+        buttonRematch = customView.findViewById(R.id.buttonRematch)
+        buttonNewGame = customView.findViewById(R.id.buttonNewGame)
+
+        //calculating values for jumping dialog when game is over between two players
+        if(player == 1){
+            if(currentValuePlayerOne == 5){
+                textViewWinOrLose.text = "Victory"
+                val scores: Int = Integer.parseInt(textViewPlayerVSPlayer1.text.toString())
+                textViewPlayerVSPlayer1.text = (scores + 1).toString()
+            }else{
+                textViewWinOrLose.text = "Defeat"
+                val scores: Int = Integer.parseInt(textViewPlayerVSPlayer2.text.toString())
+                textViewPlayerVSPlayer2.text = (scores + 1).toString()
+            }
+        }else{
+            if(currentValuePlayerTwo == 5){
+                textViewWinOrLose.text = "Victory"
+                val scores: Int = Integer.parseInt(textViewPlayerVSPlayer2.text.toString())
+                textViewPlayerVSPlayer2.text = (scores + 1).toString()
+            }else{
+                textViewWinOrLose.text = "Defeat"
+                val scores: Int = Integer.parseInt(textViewPlayerVSPlayer1.text.toString())
+                textViewPlayerVSPlayer1.text = (scores + 1).toString()
+            }
+        }
+
+        textViewPlayerOneName.text = player1Name
+        textViewPlayerTwoName.text = player2Name
+
+        val dialog = builder.create()
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT)) //brise bijele uglove iz dialoga !!! (FINALLY)
+        dialog.show()
+
+        buttonNewGame.setOnClickListener {
+            val intent: Intent = Intent(this, StartActivity::class.java).apply {
+                if(player == 1){
+                    putExtra("name", player1Name)
+                }else{
+                    putExtra("name", player2Name)
+                }
+            }
+            startActivity(intent)
+        }
+
+    }
+
+    private fun createNewHasMapStore() { //setting document in collection for score of players
         val roomsChooseRef2 = roomsChooseRef
         roomsChooseRef2.set(chooseRoom as Map<String, Any>, SetOptions.merge())
             .addOnSuccessListener {
@@ -132,37 +224,34 @@ class MainActivity : AppCompatActivity() {
             }
     }
     private fun saveChoose(player: Int){
+        Log.i("Choose", "saveChoose function called")
         //updating picture of player one in room
         if(player == 1){
-            chooseRoom = hashMapOf(
-                "choosePlayer1" to playerChoose
-            )
-
-            roomsChooseRef.update(chooseRoom as Map<String, Any>)
-                .addOnSuccessListener {
-                    Log.i("Choose", "Successfully added picture choice")
-                }
-                .addOnFailureListener {
-                    Log.i("Choose", "Failed while adding picture choice ${it.toString()}")
-                }
-        }else if(player == 2){ //updating picture of player two in room
-
-            chooseRoom = hashMapOf(
-                "choosePlayer2" to playerChoose
-            )
 
             try{
-                roomsChooseRef.update(chooseRoom as Map<String, Any>)
+                roomsChooseRef.update("choosePlayer1", playerChoose)
                     .addOnSuccessListener {
-                        Log.i("Choose", "Successfully added picture choice")
+                        Log.i("Choose", "Successfully added picture choice for player 2")
                     }
                     .addOnFailureListener {
-                        Log.i("Choose", "Failed while adding picture choice")
+                        Log.i("Choose", "Failed while adding picture choice for player 2: ${it.toString()}")
                     }
             }catch (e: Exception){
                 Log.i("TAG", "EXCEPTION IS: ${e.toString()}")
             }
-
+            Log.i("TAG", "Checking update in saveChoose")
+        }else if(player == 2){ //updating picture of player two in room
+            try{
+                roomsChooseRef.update("choosePlayer2", playerChoose)
+                    .addOnSuccessListener {
+                        Log.i("Choose", "Successfully added picture choice for player 2")
+                    }
+                    .addOnFailureListener {
+                        Log.i("Choose", "Failed while adding picture choice for player 2: ${it.toString()}")
+                    }
+            }catch (e: Exception){
+                Log.i("TAG", "EXCEPTION IS: ${e.toString()}")
+            }
         }
         if(playerChoose == "0"){ //if one of players didnt chose a picture.
             Toast.makeText(this, "Please, choose one of the pictures!", Toast.LENGTH_SHORT).show()
@@ -396,16 +485,18 @@ class MainActivity : AppCompatActivity() {
         updateScore(scorePlayerOne, scorePlayerTwo)
     }
 
+    private var currentValuePlayerOne: Int = 0
+    private var currentValuePlayerTwo: Int = 0
     private fun updateScore(scorePlayerOne: String, scorePlayerTwo: String){
         Log.i("TAG UPDATE","Scores: $scorePlayerOne and $scorePlayerTwo")
         when (scorePlayerOne) {
             "victory" -> {
-                var currentValuePlayerOne: Int = Integer.parseInt(textViewPlayerOneScore.text.toString())
+                currentValuePlayerOne = Integer.parseInt(textViewPlayerOneScore.text.toString())
                 currentValuePlayerOne = currentValuePlayerOne + 1
                 textViewPlayerOneScore.text = currentValuePlayerOne.toString()
             }
             "defeat" -> {
-                var currentValuePlayerTwo: Int = Integer.parseInt(textViewPlayerTwoScore.text.toString())
+                currentValuePlayerTwo = Integer.parseInt(textViewPlayerTwoScore.text.toString())
                 currentValuePlayerTwo = currentValuePlayerTwo + 1
                 textViewPlayerTwoScore.text = currentValuePlayerTwo.toString()
             }
