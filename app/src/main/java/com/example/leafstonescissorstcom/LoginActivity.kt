@@ -18,8 +18,8 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-    lateinit var docRef: DocumentReference
-    var playerName: String? = ""
+    private lateinit var docRef: DocumentReference
+    private var playerName: String? = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +59,7 @@ class LoginActivity : AppCompatActivity() {
         docRef.get()
             .addOnSuccessListener {
                 playerName = it.getString("name")
-                Log.i("getnick", "Getting nick name successed ${playerName}")
+                Log.i("getnick", "Getting nick name successed $playerName")
             }
             .addOnFailureListener {
                 Log.i("getnick", "Getting nick name failed")

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
@@ -28,6 +27,9 @@ class StartActivity : AppCompatActivity() {
         val textViewWelcome = findViewById<TextView>(R.id.textViewWelcomePlayer)
         val playerName = intent.extras?.getString("name") ?: "No message found"
 
+        if(playerName == ""){
+            finish()
+        }
         val newString = textViewWelcome.text.toString() + " " + playerName + "!"
         Log.i("getnick", "Change textview: $newString")
         textViewWelcome.text = newString

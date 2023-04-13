@@ -46,7 +46,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonRematch: AppCompatButton
     private lateinit var buttonNewGame: AppCompatButton
 
-    //fix chooice color, to fast covering choice of another player (blue and red) make it a little longer, when same choice make it half red/half blue somehow
+    //to fast covering choice of another player (blue and red) make it a little longer, when same choice make it half red/half blue somehow
+    //make after game a table with all results of both players
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,19 +75,19 @@ class MainActivity : AppCompatActivity() {
         textViewPlayerTwoName.text = player2Name
 
         buttonStone.setOnClickListener {
-            buttonStone.setBackgroundColor(Color.argb(58, 198, 182, 180))
+            buttonStone.setBackgroundColor(Color.argb(120, 255, 255, 0))
             buttonLeaf.setBackgroundColor(Color.argb(58, 198, 182, 54))
             buttonSccissors.setBackgroundColor(Color.argb(58, 198, 182, 54))
             playerChoose = "1"
         }
         buttonLeaf.setOnClickListener {
-            buttonLeaf.setBackgroundColor(Color.argb(58, 198, 182, 180))
+            buttonLeaf.setBackgroundColor(Color.argb(120, 255, 255, 0))
             buttonStone.setBackgroundColor(Color.argb(58, 198, 182, 54))
             buttonSccissors.setBackgroundColor(Color.argb(58, 198, 182, 54))
             playerChoose = "2"
         }
         buttonSccissors.setOnClickListener {
-            buttonSccissors.setBackgroundColor(Color.argb(58, 198, 182, 180))
+            buttonSccissors.setBackgroundColor(Color.argb(120, 255, 255, 0))
             buttonStone.setBackgroundColor(Color.argb(58, 198, 182, 54))
             buttonLeaf.setBackgroundColor(Color.argb(58, 198, 182, 54))
             playerChoose = "3"
@@ -96,7 +97,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     saveChoose(player)
                 }catch (e: Exception){
-                    Log.i("TAG", "exception global scope coroutine: ${e.toString()}")
+                    Log.i("TAG", "exception global scope coroutine: $e")
                 }
             }
 
@@ -111,13 +112,27 @@ class MainActivity : AppCompatActivity() {
         timerFun(textViewTimer, player)
     }
 
+    var stopFirstRound: Boolean = false
     private fun timerFun (textViewTimer: TextView, player: Int){
-        timer = object : CountDownTimer(9000, 1000) {
+        timer = object : CountDownTimer(10000, 1000) {
             override fun onTick(remaining: Long) {
-                if(remaining > 7000 && remaining < 9100){
-                    buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
-                    buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
-                    buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
+
+                if(stopFirstRound){
+                    if(remaining in 7001..8100){
+                        textViewTimer.text = ""
+                        buttonGo.isEnabled = true //tur on buttons again cuz new timer will begin
+                        buttonStone.isEnabled = true
+                        buttonLeaf.isEnabled = true
+                        buttonSccissors.isEnabled = true
+                        buttonGo.setTextColor(Color.BLACK)
+                        buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
+                        playerChoose = "0"
+
+
+                        buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                        buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                        buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                    }
                 }
                 if (remaining < 4000) {
                     textViewTimer.setTextColor(Color.argb(255, 255, 0, 0))
@@ -130,13 +145,7 @@ class MainActivity : AppCompatActivity() {
                 textViewTimer.setTextColor(Color.argb(255, 251, 239, 2))
                 if (Integer.parseInt(textViewPlayerOneScore.text.toString()) < 5 && Integer.parseInt(
                         textViewPlayerTwoScore.text.toString()) < 5){
-                    buttonGo.isEnabled = true //tur on buttons again cuz new timer will begin
-                    buttonStone.isEnabled = true
-                    buttonLeaf.isEnabled = true
-                    buttonSccissors.isEnabled = true
-                    buttonGo.setTextColor(Color.BLACK)
-                    buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
-                    playerChoose = "0"
+                    stopFirstRound = true
                     timer.start()
                 }else{
                     dialogGameOver(player)
@@ -209,8 +218,22 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             startActivity(intent)
+            finish()
         }
 
+        buttonRematch.setOnClickListener {
+            textViewPlayerOneScore.text = "0"
+            textViewPlayerTwoScore.text = "0"
+            buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
+            buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
+            buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
+            buttonGo.setTextColor(Color.BLACK)
+            buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
+            buttonGo.isEnabled = true
+            playerChoose = "0"
+            timer.start()
+            dialog.cancel()
+        }
     }
 
     private fun createNewHasMapStore() { //setting document in collection for score of players
@@ -220,7 +243,7 @@ class MainActivity : AppCompatActivity() {
                 Log.i("Choose", "Successfully added picture choice")
             }
             .addOnFailureListener {
-                Log.i("Choose", "Failed while adding picture choice ${it.toString()}")
+                Log.i("Choose", "Failed while adding picture choice $it")
             }
     }
     private fun saveChoose(player: Int){
@@ -234,10 +257,10 @@ class MainActivity : AppCompatActivity() {
                         Log.i("Choose", "Successfully added picture choice for player 2")
                     }
                     .addOnFailureListener {
-                        Log.i("Choose", "Failed while adding picture choice for player 2: ${it.toString()}")
+                        Log.i("Choose", "Failed while adding picture choice for player 2: $it")
                     }
             }catch (e: Exception){
-                Log.i("TAG", "EXCEPTION IS: ${e.toString()}")
+                Log.i("TAG", "EXCEPTION IS: $e")
             }
             Log.i("TAG", "Checking update in saveChoose")
         }else if(player == 2){ //updating picture of player two in room
@@ -247,10 +270,10 @@ class MainActivity : AppCompatActivity() {
                         Log.i("Choose", "Successfully added picture choice for player 2")
                     }
                     .addOnFailureListener {
-                        Log.i("Choose", "Failed while adding picture choice for player 2: ${it.toString()}")
+                        Log.i("Choose", "Failed while adding picture choice for player 2: $it")
                     }
             }catch (e: Exception){
-                Log.i("TAG", "EXCEPTION IS: ${e.toString()}")
+                Log.i("TAG", "EXCEPTION IS: $e")
             }
         }
         if(playerChoose == "0"){ //if one of players didnt chose a picture.
@@ -260,21 +283,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadChoose(player: Int){
         var playerOneChoose: String
-        var playertwoChoose: String
+        var playerTwoChoose: String
         roomsChooseRef.get()
             .addOnSuccessListener {
                 Log.i("TAG", "Getting choose data successed")
                 playerOneChoose = it.getString("choosePlayer1")!!
-                playertwoChoose = it.getString("choosePlayer2")!!
-                if(playerOneChoose == "unknown" && playertwoChoose == "unknown" ){
+                playerTwoChoose = it.getString("choosePlayer2")!!
+                if(playerOneChoose == "unknown" && playerTwoChoose == "unknown" ){
                     playerOneChoose = "0"
-                    playertwoChoose = "0"
+                    playerTwoChoose = "0"
                 }else if(playerOneChoose == "unknown"){
                     playerOneChoose = "0"
-                }else if(playertwoChoose == "unknown"){
-                    playertwoChoose = "0"
+                }else if(playerTwoChoose == "unknown"){
+                    playerTwoChoose = "0"
                 }
-                calculateWinner(playerOneChoose.toInt(), playertwoChoose.toInt(), player)
+                calculateWinner(playerOneChoose.toInt(), playerTwoChoose.toInt(), player)
             }
             .addOnFailureListener {
                 Log.i("TAG", "Getting choose data failed")
