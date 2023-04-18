@@ -45,9 +45,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textViewTotalLosesScore: TextView
     private lateinit var buttonRematch: AppCompatButton
     private lateinit var buttonNewGame: AppCompatButton
+    private lateinit var buttonAnalyze: AppCompatButton
 
     //to fast covering choice of another player (blue and red) make it a little longer, when same choice make it half red/half blue somehow
-    //make after game a table with all results of both players
+    //make after game a table with all results of both players, get datat from base for analyze
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -158,6 +159,8 @@ class MainActivity : AppCompatActivity() {
     private var chooseRoom = hashMapOf(
         "choosePlayer1" to "unknown",
         "choosePlayer2" to "unknown",
+        "choosesArrayPlayer1" to "empty",
+        "choosesArrayPlayer2" to "empty",
     )
 
     @SuppressLint("SetTextI18n")
@@ -178,6 +181,7 @@ class MainActivity : AppCompatActivity() {
         textViewTotalLosesScore = customView.findViewById(R.id.textViewTotalLosesScore)
         buttonRematch = customView.findViewById(R.id.buttonRematch)
         buttonNewGame = customView.findViewById(R.id.buttonNewGame)
+        buttonAnalyze = customView.findViewById(R.id.buttonAnalyze)
 
         //calculating values for jumping dialog when game is over between two players
         if(player == 1){
@@ -234,6 +238,35 @@ class MainActivity : AppCompatActivity() {
             timer.start()
             dialog.cancel()
         }
+
+        buttonAnalyze.setOnClickListener {
+            loadAnalyzedGamesOfPlayers()
+        }
+    }
+
+
+    private lateinit var arrayChoosesPlayer1: ArrayList<*>
+    private lateinit var arrayChoosesPlayer2: ArrayList<*>
+    private fun loadAnalyzedGamesOfPlayers() {
+        roomsChooseRef.get()
+            .addOnSuccessListener { documentSnapshot ->
+                arrayChoosesPlayer1 = documentSnapshot.get("choosesArrayPlayer1") as ArrayList<*>
+                arrayChoosesPlayer2 = documentSnapshot.get("choosesArrayPlayer2") as ArrayList<*>
+                Log.d("TAG", "User one choices: $arrayChoosesPlayer1 ")
+                Log.d("TAG", "User two choices: $arrayChoosesPlayer2 ")
+
+                val intent = Intent(this, AnalyzedGameActivity::class.java).apply {
+                    putExtra("arrayPlayer1", arrayChoosesPlayer1)
+                    putExtra("arrayPlayer2", arrayChoosesPlayer2)
+                    putExtra("player1Name", player1Name)
+                    putExtra("player2Name", player2Name)
+                }
+                startActivity(intent)
+
+            }
+            .addOnFailureListener { e ->
+                Log.e("TAG", "Error getting user document", e)
+            }
     }
 
     private fun createNewHasMapStore() { //setting document in collection for score of players
@@ -246,13 +279,24 @@ class MainActivity : AppCompatActivity() {
                 Log.i("Choose", "Failed while adding picture choice $it")
             }
     }
+
+    val choosesPlayer1 = arrayListOf("")
+    val choosesPlayer2 = arrayListOf("")
     private fun saveChoose(player: Int){
         Log.i("Choose", "saveChoose function called")
         //updating picture of player one in room
         if(player == 1){
-
+            choosesPlayer1.add(playerChoose)
+            Log.i("TAG12", "choosesPlayer1.toString()")
             try{
                 roomsChooseRef.update("choosePlayer1", playerChoose)
+                    .addOnSuccessListener {
+                        Log.i("Choose", "Successfully added picture choice for player 2")
+                    }
+                    .addOnFailureListener {
+                        Log.i("Choose", "Failed while adding picture choice for player 2: $it")
+                    }
+                roomsChooseRef.update("choosesArrayPlayer1", choosesPlayer1)
                     .addOnSuccessListener {
                         Log.i("Choose", "Successfully added picture choice for player 2")
                     }
@@ -264,8 +308,16 @@ class MainActivity : AppCompatActivity() {
             }
             Log.i("TAG", "Checking update in saveChoose")
         }else if(player == 2){ //updating picture of player two in room
+            choosesPlayer2.add(playerChoose)
             try{
                 roomsChooseRef.update("choosePlayer2", playerChoose)
+                    .addOnSuccessListener {
+                        Log.i("Choose", "Successfully added picture choice for player 2")
+                    }
+                    .addOnFailureListener {
+                        Log.i("Choose", "Failed while adding picture choice for player 2: $it")
+                    }
+                roomsChooseRef.update("choosesArrayPlayer2", choosesPlayer2)
                     .addOnSuccessListener {
                         Log.i("Choose", "Successfully added picture choice for player 2")
                     }
