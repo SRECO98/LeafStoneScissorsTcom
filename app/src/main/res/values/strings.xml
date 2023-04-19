@@ -27,4 +27,12 @@
     <string name="___8">8</string>
     <string name="pick">PICK</string>
     <string name="waiting_for_second_player">Waiting for second player...</string>
+    <string name="close">Close</string>
+    <string name="player_one">Player one</string>
+    <string name="player_two">Player two</string>
+    <string name="analyze">Analyze</string>
+    <string name="___0">0</string>
+    <string name="____0">0</string>
+    <string name="rematch">Rematch</string>
+    <string name="new_game">New Game</string>
 </resources>

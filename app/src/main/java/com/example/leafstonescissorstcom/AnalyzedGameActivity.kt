@@ -1,40 +1,73 @@
 package com.example.leafstonescissorstcom
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
 
 class AnalyzedGameActivity : AppCompatActivity() {
 
-    val arrayPlayerOneId: ArrayList<Int> = ArrayList()
-    val arrayPlayerTwoId: ArrayList<Int> = ArrayList()
-    lateinit var newRecycleView : RecyclerView
-    lateinit var newArrayList: ArrayList<News>
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val arrayPlayerOneId: ArrayList<Int> = ArrayList()
+    private val arrayPlayerTwoId: ArrayList<Int> = ArrayList()
+    private lateinit var newRecycleView : RecyclerView
+    private lateinit var newArrayList: ArrayList<News>
+    private lateinit var roomsChooseRef: DocumentReference
+    private lateinit var buttonClose: AppCompatButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_analyzed_game)
 
+        Log.d("TAG", "onCreate called") // add a logging statement here
+
         val textViewPlayerOne: TextView = findViewById(R.id.textViewPLayerOne)
         val textViewPlayerTwo: TextView = findViewById(R.id.textViewPLayerTwo)
-        val arrayChoosesPlayer1 = intent.getIntArrayExtra("arrayPlayer1")!!
-        val arrayChoosesPlayer2 = intent.getIntArrayExtra("arrayPlayer2")!!
+        buttonClose = findViewById(R.id.buttonClose)
+
+        val roomId = intent.getStringExtra("id")!!
         val player1Name = intent.getStringExtra("player1Name")
         val player2Name = intent.getStringExtra("player2Name")
         textViewPlayerOne.text = player1Name
         textViewPlayerTwo.text = player2Name
 
-        imageIds(arrayChoosesPlayer1, arrayChoosesPlayer2)
+        loadAnalyzedGamesOfPlayers(roomId)
+
+        buttonClose.setOnClickListener {
+            finish()
+        }
     }
 
-    private fun imageIds(arrayChoosesPlayer1: IntArray, arrayChoosesPlayer2: IntArray){
-        for (item in arrayChoosesPlayer1){
-            when (item){
-                1 -> arrayPlayerOneId.add(R.drawable.rock)
-                2 -> arrayPlayerOneId.add(R.drawable.paper)
-                3 -> arrayPlayerOneId.add(R.drawable.scissors)
+    private fun loadAnalyzedGamesOfPlayers(roomId: String) {
+        roomsChooseRef = db.collection("rooms").document(roomId)
+        roomsChooseRef.get()
+            .addOnSuccessListener { documentSnapshot ->
+                val choosesArrayPlayer1 = documentSnapshot.get("choosesArrayPlayer1") as? ArrayList<*>
+                val choosesArrayPlayer2 = documentSnapshot.get("choosesArrayPlayer2") as? ArrayList<*>
+                if (choosesArrayPlayer1 != null && choosesArrayPlayer2 != null) {
+                    Log.d("TAG", "User one choices: $choosesArrayPlayer1 ")
+                    Log.d("TAG", "User two choices: $choosesArrayPlayer2 ")
+                    imageIds(choosesArrayPlayer1, choosesArrayPlayer2)
+                } else {
+                    Log.e("TAG", "Error: null array")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("TAG", "Error getting user document", e)
+            }
+    }
+
+    private fun imageIds(arrayChoosesPlayer1: ArrayList<*>, arrayChoosesPlayer2: ArrayList<*>){
+        for (item in arrayChoosesPlayer1) {
+            when (item) {
+                1L -> arrayPlayerOneId.add(R.drawable.rock)
+                2L -> arrayPlayerOneId.add(R.drawable.paper)
+                3L -> arrayPlayerOneId.add(R.drawable.scissors)
                 else -> {
                     arrayPlayerOneId.add(R.drawable.empty)
                 }
@@ -43,9 +76,9 @@ class AnalyzedGameActivity : AppCompatActivity() {
 
         for (item in arrayChoosesPlayer2){
             when (item){
-                1 -> arrayPlayerTwoId.add(R.drawable.rock)
-                2 -> arrayPlayerTwoId.add(R.drawable.paper)
-                3 -> arrayPlayerTwoId.add(R.drawable.scissors)
+                1L -> arrayPlayerTwoId.add(R.drawable.rock)
+                2L -> arrayPlayerTwoId.add(R.drawable.paper)
+                3L -> arrayPlayerTwoId.add(R.drawable.scissors)
                 else -> {
                     arrayPlayerTwoId.add(R.drawable.empty)
                 }
@@ -56,7 +89,7 @@ class AnalyzedGameActivity : AppCompatActivity() {
         newRecycleView.layoutManager = LinearLayoutManager(this)
         newRecycleView.setHasFixedSize(true)
 
-        newArrayList = arrayListOf<News>()
+        newArrayList = arrayListOf()
         getUserData()
     }
 

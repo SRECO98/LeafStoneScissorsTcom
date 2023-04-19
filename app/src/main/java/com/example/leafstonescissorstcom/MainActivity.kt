@@ -19,10 +19,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+
+    private val NUMBER_OF_ROUNDS: Int = 5
 
     private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -149,8 +152,8 @@ class MainActivity : AppCompatActivity() {
                 counterRounds += 1
                 textViewTimer.text = "9"
                 textViewTimer.setTextColor(Color.argb(255, 251, 239, 2))
-                if (Integer.parseInt(textViewPlayerOneScore.text.toString()) < 5 && Integer.parseInt(
-                        textViewPlayerTwoScore.text.toString()) < 5){
+                if (Integer.parseInt(textViewPlayerOneScore.text.toString()) < NUMBER_OF_ROUNDS && Integer.parseInt(
+                        textViewPlayerTwoScore.text.toString()) < NUMBER_OF_ROUNDS){
                     stopFirstRound = true
                     timer.start()
                 }else{
@@ -245,34 +248,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonAnalyze.setOnClickListener {
-            loadAnalyzedGamesOfPlayers()
+            loadAnalyzedActivity()
         }
     }
 
-
-    private lateinit var arrayChoosesPlayer1: ArrayList<*>
-    private lateinit var arrayChoosesPlayer2: ArrayList<*>
-
-    private fun loadAnalyzedGamesOfPlayers() {
-        roomsChooseRef.get()
-            .addOnSuccessListener { documentSnapshot ->
-                arrayChoosesPlayer1 = documentSnapshot.get("choosesArrayPlayer1") as ArrayList<*>
-                arrayChoosesPlayer2 = documentSnapshot.get("choosesArrayPlayer2") as ArrayList<*>
-                Log.d("TAG", "User one choices: $arrayChoosesPlayer1 ")
-                Log.d("TAG", "User two choices: $arrayChoosesPlayer2 ")
-
-                val intent = Intent(this, AnalyzedGameActivity::class.java).apply {
-                    putExtra("arrayPlayer1", arrayChoosesPlayer1)
-                    putExtra("arrayPlayer2", arrayChoosesPlayer2)
-                    putExtra("player1Name", player1Name)
-                    putExtra("player2Name", player2Name)
-                }
-                startActivity(intent)
-
-            }
-            .addOnFailureListener { e ->
-                Log.e("TAG", "Error getting user document", e)
-            }
+    private fun loadAnalyzedActivity() {
+        val intent = Intent(this, AnalyzedGameActivity::class.java).apply {
+            putExtra("player1Name", player1Name)
+            putExtra("player2Name", player2Name)
+            putExtra("id", roomId)
+        }
+        startActivity(intent)
     }
 
     private fun createNewHasMapStore() { //setting document in collection for score of players
@@ -286,13 +272,13 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    val choosesPlayer1 = arrayListOf("")
-    val choosesPlayer2 = arrayListOf("")
+    val choosesPlayer1 = arrayListOf<Int>()
+    val choosesPlayer2 = arrayListOf<Int>()
     private fun saveChoose(player: Int){
         Log.i("Choose", "saveChoose function called")
         //updating picture of player one in room
         if(player == 1){
-            choosesPlayer1.add(playerChoose)
+            choosesPlayer1.add(playerChoose.toInt())
             Log.i("TAG12", "choosesPlayer1.toString()")
             try{
                 roomsChooseRef.update("choosePlayer1", playerChoose)
@@ -314,7 +300,7 @@ class MainActivity : AppCompatActivity() {
             }
             Log.i("TAG", "Checking update in saveChoose")
         }else if(player == 2){ //updating picture of player two in room
-            choosesPlayer2.add(playerChoose)
+            choosesPlayer2.add(playerChoose.toInt())
             try{
                 roomsChooseRef.update("choosePlayer2", playerChoose)
                     .addOnSuccessListener {
