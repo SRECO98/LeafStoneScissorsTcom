@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 
-class MyAdapter(private val newsList: ArrayList<News>):
+class MyAdapter(private val roundList: ArrayList<Round>):
     RecyclerView.Adapter<MyAdapter.MyViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -15,11 +15,11 @@ class MyAdapter(private val newsList: ArrayList<News>):
     }
 
     override fun getItemCount(): Int {
-        return newsList.size
+        return roundList.size
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val currentItem = newsList[position]
+        val currentItem = roundList[position]
         holder.titleImagePlayerOne.setImageResource(currentItem.titleImagePlayer1)
         holder.titleImagePlayerTwo.setImageResource(currentItem.titleImagePlayer2)
     }

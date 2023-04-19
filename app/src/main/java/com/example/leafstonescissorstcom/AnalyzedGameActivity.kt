@@ -16,7 +16,7 @@ class AnalyzedGameActivity : AppCompatActivity() {
     private val arrayPlayerOneId: ArrayList<Int> = ArrayList()
     private val arrayPlayerTwoId: ArrayList<Int> = ArrayList()
     private lateinit var newRecycleView : RecyclerView
-    private lateinit var newArrayList: ArrayList<News>
+    private lateinit var newArrayList: ArrayList<Round>
     private lateinit var roomsChooseRef: DocumentReference
     private lateinit var buttonClose: AppCompatButton
 
@@ -95,8 +95,8 @@ class AnalyzedGameActivity : AppCompatActivity() {
 
     private fun getUserData(){
         for (i in arrayPlayerOneId.indices){
-            val news = News(arrayPlayerOneId[i], arrayPlayerTwoId[i])
-            newArrayList.add(news)
+            val round = Round(arrayPlayerOneId[i], arrayPlayerTwoId[i])
+            newArrayList.add(round)
         }
 
         newRecycleView.adapter = MyAdapter(newArrayList)

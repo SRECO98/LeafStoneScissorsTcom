@@ -8,18 +8,14 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.LayoutInflater
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -55,7 +51,6 @@ class MainActivity : AppCompatActivity() {
     private var counterRounds: Int = 0
 
     //to fast covering choice of another player (blue and red) make it a little longer, when same choice make it half red/half blue somehow
-    //make after game a table with all results of both players, get datat from base for analyze
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -272,8 +267,8 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    val choosesPlayer1 = arrayListOf<Int>()
-    val choosesPlayer2 = arrayListOf<Int>()
+    private val choosesPlayer1 = arrayListOf<Int>()
+    private val choosesPlayer2 = arrayListOf<Int>()
     private fun saveChoose(player: Int){
         Log.i("Choose", "saveChoose function called")
         //updating picture of player one in room
