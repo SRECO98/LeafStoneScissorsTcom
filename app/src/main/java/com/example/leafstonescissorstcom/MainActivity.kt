@@ -8,11 +8,14 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.LayoutInflater
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -46,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonRematch: AppCompatButton
     private lateinit var buttonNewGame: AppCompatButton
     private lateinit var buttonAnalyze: AppCompatButton
+    private var counterRounds: Int = 0
 
     //to fast covering choice of another player (blue and red) make it a little longer, when same choice make it half red/half blue somehow
     //make after game a table with all results of both players, get datat from base for analyze
@@ -142,6 +146,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFinish() {
+                counterRounds += 1
                 textViewTimer.text = "9"
                 textViewTimer.setTextColor(Color.argb(255, 251, 239, 2))
                 if (Integer.parseInt(textViewPlayerOneScore.text.toString()) < 5 && Integer.parseInt(
@@ -247,6 +252,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var arrayChoosesPlayer1: ArrayList<*>
     private lateinit var arrayChoosesPlayer2: ArrayList<*>
+
     private fun loadAnalyzedGamesOfPlayers() {
         roomsChooseRef.get()
             .addOnSuccessListener { documentSnapshot ->
