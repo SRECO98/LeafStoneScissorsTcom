@@ -95,21 +95,26 @@ class MainActivity : AppCompatActivity() {
             buttonLeaf.setBackgroundColor(Color.argb(58, 198, 182, 54))
             playerChoose = "3"
         }
-        buttonGo.setOnClickListener {
-            GlobalScope.launch {
-                try {
-                    saveChoose(player)
-                }catch (e: Exception){
-                    Log.i("TAG", "exception global scope coroutine: $e")
-                }
-            }
 
-            buttonGo.isEnabled = false //turn off buttons because user checked his choice
-            buttonStone.isEnabled = false
-            buttonLeaf.isEnabled = false
-            buttonSccissors.isEnabled = false
-            buttonGo.setTextColor(Color.WHITE)
-            buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
+        buttonGo.setOnClickListener {
+            if(playerChoose == "0"){ //if one of players didnt chose a picture.
+                Toast.makeText(this, "Please, choose one of the pictures!", Toast.LENGTH_SHORT).show()
+            }else{
+                GlobalScope.launch {
+                    try {
+                        saveChoose(player)
+                    }catch (e: Exception){
+                        Log.i("TAG", "exception global scope coroutine: $e")
+                    }
+                }
+
+                buttonGo.isEnabled = false //turn off buttons because user checked his choice
+                buttonStone.isEnabled = false
+                buttonLeaf.isEnabled = false
+                buttonSccissors.isEnabled = false
+                buttonGo.setTextColor(Color.WHITE)
+                buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
+            }
         }
 
         timerFun(textViewTimer, player)
@@ -315,9 +320,6 @@ class MainActivity : AppCompatActivity() {
                 Log.i("TAG", "EXCEPTION IS: $e")
             }
         }
-        if(playerChoose == "0"){ //if one of players didnt chose a picture.
-            Toast.makeText(this, "Please, choose one of the pictures!", Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun loadChoose(player: Int){
@@ -337,6 +339,10 @@ class MainActivity : AppCompatActivity() {
                     playerTwoChoose = "0"
                 }
                 calculateWinner(playerOneChoose.toInt(), playerTwoChoose.toInt(), player)
+                //reset on zero in case someone didnt lock anything so it doesnt take last results.
+                playerChoose = "0"
+                saveChoose(player = 1)
+                saveChoose(player = 2)
             }
             .addOnFailureListener {
                 Log.i("TAG", "Getting choose data failed")
@@ -431,13 +437,15 @@ class MainActivity : AppCompatActivity() {
                 if(playerTwoChoose != 0){
                     scorePlayerOne = "defeat"
                     scorePlayerTwo = "victory"
-                    buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    if(playerTwoChoose == 1)
+                        buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    else if(playerTwoChoose == 2)
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    else
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 0))
                 }else{
                     scorePlayerOne = "draw"
                     scorePlayerTwo = "draw"
-                    buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 255))
-                    buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 255))
-                    buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 255))
                 }
             }
 
@@ -528,13 +536,15 @@ class MainActivity : AppCompatActivity() {
                 if(playerOneChoose != 0){
                     scorePlayerTwo = "defeat"
                     scorePlayerOne = "victory"
-                    buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    if(playerOneChoose == 1)
+                        buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    else if(playerOneChoose == 2)
+                        buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 0))
+                    else
+                        buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 0))
                 }else{
                     scorePlayerTwo = "draw"
                     scorePlayerOne = "draw"
-                    buttonStone.setBackgroundColor(Color.argb(58, 255, 0, 255))
-                    buttonLeaf.setBackgroundColor(Color.argb(58, 255, 0, 255))
-                    buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 255))
                 }
             }
 
