@@ -86,6 +86,8 @@ class RegisterActivity : AppCompatActivity() {
         val nickName = nickname.text.toString()
         val name: HashMap<String, Any> = HashMap()
         name.put("name", nickName)
+        name.put("totalWins", "0")
+        name.put("totalLoses", "0")
 
         docRef.set(name)
             .addOnSuccessListener {

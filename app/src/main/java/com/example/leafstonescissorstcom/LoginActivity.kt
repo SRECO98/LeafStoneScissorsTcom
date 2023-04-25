@@ -72,6 +72,7 @@ class LoginActivity : AppCompatActivity() {
                     // Sign in success, navigate to the Main Activity.
                     val intent = Intent(this, StartActivity::class.java)
                     intent.putExtra("name", playerName)
+                    intent.putExtra("email", emailInput)
                     startActivity(intent)
                     Log.i("TAG", "Authentication successed.")
                     //val user = auth.currentUser

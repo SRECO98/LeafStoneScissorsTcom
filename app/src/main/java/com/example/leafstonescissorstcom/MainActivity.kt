@@ -36,6 +36,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var roomId: String
     private var player1Name: String? = ""
     private var player2Name: String? = ""
+    private var player1Email: String? = ""
+    private var player2Email: String? = ""
+
+
 
     //Elements of dialog:
     private lateinit var textViewWinOrLose: TextView
@@ -67,12 +71,21 @@ class MainActivity : AppCompatActivity() {
         val textViewTimer: TextView = findViewById(R.id.textViewTimer)
         player1Name = intent.getStringExtra("player1Name")
         player2Name = intent.getStringExtra("player2Name")
+        player1Email = intent.getStringExtra("player1Email")
+        player2Email = intent.getStringExtra("player2Email")
+        Log.i("TAG", "emailovi!! $player1Email $player2Email")
+        Log.i("TAG", "emailovi!! $player1Email $player2Email")
         roomId = intent.getStringExtra("room_id")!!
         val player:Int = intent.getIntExtra("player", 0)
         roomsChooseRef = db.collection("rooms").document(roomId)
         Log.i("TAG4", "VALUE ON NEXT ACTIVITY IS: $player1Name")
         Log.i("TAG4", "VALUE ON NEXT ACTIVITY IS: $player2Name")
         createNewHasMapStore()
+        if(player == 1)
+            gettingTotalWinsAndTotalLosesFromFirebase(player1Email!!)
+        else
+            gettingTotalWinsAndTotalLosesFromFirebase(player2Email!!)
+
 
         textViewPlayerOneName.text = player1Name
         textViewPlayerTwoName.text = player2Name
@@ -97,6 +110,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonGo.setOnClickListener {
+            userPressedButtonLock = true
             if(playerChoose == "0"){ //if one of players didnt chose a picture.
                 Toast.makeText(this, "Please, choose one of the pictures!", Toast.LENGTH_SHORT).show()
             }else{
@@ -121,6 +135,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     var stopFirstRound: Boolean = false
+    var userPressedButtonLock = false // if user didnt press button lock we must enter auto zero to firebase
     private fun timerFun (textViewTimer: TextView, player: Int){
         timer = object : CountDownTimer(10000, 1000) {
             override fun onTick(remaining: Long) {
@@ -151,9 +166,32 @@ class MainActivity : AppCompatActivity() {
             override fun onFinish() {
                 counterRounds += 1
                 textViewTimer.text = "9"
+                Log.i("tag", "User pressed button: $userPressedButtonLock")
+                if(!userPressedButtonLock){
+                        GlobalScope.launch {
+                            try {
+                                saveChoose(player)
+                            }catch (e: Exception){
+                                Log.i("TAG", "exception global scope coroutine: $e")
+                            }
+                        }
+                        buttonGo.isEnabled = false //turn off buttons because user checked his choice
+                        buttonStone.isEnabled = false
+                        buttonLeaf.isEnabled = false
+                        buttonSccissors.isEnabled = false
+                        buttonGo.setTextColor(Color.WHITE)
+                        buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
+                }else{
+                    userPressedButtonLock = false
+                }
                 textViewTimer.setTextColor(Color.argb(255, 251, 239, 2))
-                if (Integer.parseInt(textViewPlayerOneScore.text.toString()) < NUMBER_OF_ROUNDS && Integer.parseInt(
+                if (Integer.parseInt(textViewPlayerOneScore.text.toString()) < NUMBER_OF_ROUNDS && Integer.parseInt( //this doest get alst value on time because it needs 2-3 sec to update score on screen.
                         textViewPlayerTwoScore.text.toString()) < NUMBER_OF_ROUNDS){
+
+                    val gr = Integer.parseInt(textViewPlayerOneScore.text.toString())
+                    val gr2 = Integer.parseInt(textViewPlayerTwoScore.text.toString())
+                    Log.i("TAG", "if in method onFinish: p1: $gr ")
+                    Log.i("TAG", "if in method onFinish: p2: $gr2 ")
                     stopFirstRound = true
                     timer.start()
                 }else{
@@ -186,7 +224,6 @@ class MainActivity : AppCompatActivity() {
         textViewPlayerVSPlayer2 = customView.findViewById(R.id.textViewPlayerVSPlayer2)
         textViewTotalWinsScore = customView.findViewById(R.id.textViewTotalWinsScore)
         textViewTotalLosesScore = customView.findViewById(R.id.textViewTotalLosesScore)
-        textViewTotalLosesScore = customView.findViewById(R.id.textViewTotalLosesScore)
         buttonRematch = customView.findViewById(R.id.buttonRematch)
         buttonNewGame = customView.findViewById(R.id.buttonNewGame)
         buttonAnalyze = customView.findViewById(R.id.buttonAnalyze)
@@ -197,20 +234,36 @@ class MainActivity : AppCompatActivity() {
                 textViewWinOrLose.text = "Victory"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer1.text.toString())
                 textViewPlayerVSPlayer1.text = (scores + 1).toString()
+                val totalWins2: Int = Integer.parseInt(totalWins) + 1  //getting value from base before game plus 1
+                textViewTotalWinsScore.text = totalWins2.toString() //putting taht value on screen
+                textViewTotalLosesScore.text = totalLoses // same value we get from base passing to screen because it didnt change
+                updatingTotalWinsAndTotalLosesInFirebase(player1Email!!, totalWins2.toString(), totalLoses) //adding new values to base
             }else{
                 textViewWinOrLose.text = "Defeat"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer2.text.toString())
                 textViewPlayerVSPlayer2.text = (scores + 1).toString()
+                val totalLoses2: Int = Integer.parseInt(totalLoses) + 1
+                textViewTotalWinsScore.text = totalWins
+                textViewTotalLosesScore.text = totalLoses2.toString()
+                updatingTotalWinsAndTotalLosesInFirebase(player1Email!!, totalWins, totalLoses2.toString())
             }
-        }else{
+        }else{ //player == 2
             if(currentValuePlayerTwo == 5){
                 textViewWinOrLose.text = "Victory"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer2.text.toString())
                 textViewPlayerVSPlayer2.text = (scores + 1).toString()
+                val totalWins2: Int = Integer.parseInt(totalWins) + 1
+                textViewTotalWinsScore.text = totalWins2.toString()
+                textViewTotalLosesScore.text = totalLoses
+                updatingTotalWinsAndTotalLosesInFirebase(player2Email!!, totalWins2.toString(), totalLoses)
             }else{
                 textViewWinOrLose.text = "Defeat"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer1.text.toString())
                 textViewPlayerVSPlayer1.text = (scores + 1).toString()
+                val totalLoses2: Int = Integer.parseInt(textViewTotalLosesScore.text.toString()) + 1
+                textViewTotalWinsScore.text = totalWins
+                textViewTotalLosesScore.text = totalLoses2.toString()
+                updatingTotalWinsAndTotalLosesInFirebase(player2Email!!, totalWins, totalLoses2.toString())
             }
         }
 
@@ -322,6 +375,38 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun resetChooseToZero(player: Int){
+        Log.i("Choose", "saveChoose function called")
+        //updating picture of player one in room
+        if(player == 1){
+            Log.i("TAG12", "choosesPlayer1.toString()")
+            try{
+                roomsChooseRef.update("choosePlayer1", playerChoose)
+                    .addOnSuccessListener {
+                        Log.i("Choose", "Successfully added picture choice for player 2")
+                    }
+                    .addOnFailureListener {
+                        Log.i("Choose", "Failed while adding picture choice for player 2: $it")
+                    }
+            }catch (e: Exception){
+                Log.i("TAG", "EXCEPTION IS: $e")
+            }
+            Log.i("TAG", "Checking update in saveChoose")
+        }else if(player == 2){ //updating picture of player two in room
+            try{
+                roomsChooseRef.update("choosePlayer2", playerChoose)
+                    .addOnSuccessListener {
+                        Log.i("Choose", "Successfully added picture choice for player 2")
+                    }
+                    .addOnFailureListener {
+                        Log.i("Choose", "Failed while adding picture choice for player 2: $it")
+                    }
+            }catch (e: Exception){
+                Log.i("TAG", "EXCEPTION IS: $e")
+            }
+        }
+    }
+
     private fun loadChoose(player: Int){
         var playerOneChoose: String
         var playerTwoChoose: String
@@ -341,8 +426,8 @@ class MainActivity : AppCompatActivity() {
                 calculateWinner(playerOneChoose.toInt(), playerTwoChoose.toInt(), player)
                 //reset on zero in case someone didnt lock anything so it doesnt take last results.
                 playerChoose = "0"
-                saveChoose(player = 1)
-                saveChoose(player = 2)
+                resetChooseToZero(player = 1)
+                resetChooseToZero(player = 2)
             }
             .addOnFailureListener {
                 Log.i("TAG", "Getting choose data failed")
@@ -350,6 +435,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun calculateWinner(playerOneChoose: Int, playerTwoChoose: Int, player: Int){
+
+        Log.i("TAG", "Player Choose in calculation function: p1: $playerOneChoose")
+        Log.i("TAG", "Player Choose in calculation function: p2: $playerTwoChoose")
+
         var scorePlayerOne = ""
         var scorePlayerTwo = ""
         Log.i("TAG", "Chooses: $playerOneChoose and $playerTwoChoose")
@@ -472,8 +561,8 @@ class MainActivity : AppCompatActivity() {
                         buttonSccissors.setBackgroundColor(Color.argb(58, 255, 0, 0))
                     }
                     else -> {
-                        scorePlayerOne = "victory"
-                        scorePlayerTwo = "defeat"
+                        scorePlayerOne = "defeat"
+                        scorePlayerTwo = "victory"
                         buttonStone.setBackgroundColor(Color.argb(58, 0, 0, 255))
                     }
                 }
@@ -561,6 +650,7 @@ class MainActivity : AppCompatActivity() {
     private var currentValuePlayerTwo: Int = 0
     private fun updateScore(scorePlayerOne: String, scorePlayerTwo: String){
         Log.i("TAG UPDATE","Scores: $scorePlayerOne and $scorePlayerTwo")
+
         when (scorePlayerOne) {
             "victory" -> {
                 currentValuePlayerOne = Integer.parseInt(textViewPlayerOneScore.text.toString())
@@ -576,6 +666,37 @@ class MainActivity : AppCompatActivity() {
                 //draw
             }
         }
+    }
+
+    private fun updatingTotalWinsAndTotalLosesInFirebase(email: String, totalWins: String, totalLoses: String) {
+        val docRef = db.collection("nameOfUsers").document(email)
+        try{
+            docRef.update("totalWins", totalWins, "totalLoses", totalLoses)
+                .addOnSuccessListener {
+                    Log.i("Choose", "Successfully added plus one to total wins in FB")
+                }
+                .addOnFailureListener {
+                    Log.i("Choose", "Failed while adding plus one to FB for totalWins")
+                }
+        }catch (e: Exception){
+                Log.i("TAG", "EXCEPTION IS: $e")
+        }
+    }
+
+    private var totalWins: String = "0"
+    private var totalLoses: String = "0"
+    private fun gettingTotalWinsAndTotalLosesFromFirebase(email: String) {
+        val docRef = db.collection("nameOfUsers").document(email)
+        docRef.get()
+            .addOnSuccessListener {
+                totalWins = it.getString("totalWins")!!
+                totalLoses = it.getString("totalLoses")!!
+                Log.i("TAG", "Getting total wins successed $totalWins")
+                Log.i("TAG", "Getting total loses successed $totalLoses")
+            }
+            .addOnFailureListener {
+                Log.i("TAG", "Getting total wins or loses failed")
+            }
     }
 
     override fun onStart() {

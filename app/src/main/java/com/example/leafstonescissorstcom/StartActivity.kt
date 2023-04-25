@@ -16,6 +16,7 @@ class StartActivity : AppCompatActivity() {
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private var roomData = hashMapOf("player1" to "value", "player2" to "Value2", "status" to "default")
     private lateinit var textViewWaiting: TextView
+    var playerEmail = ""
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,9 +26,10 @@ class StartActivity : AppCompatActivity() {
         val buttonStartGame = findViewById<AppCompatButton>(R.id.buttonStartGame)
         textViewWaiting = findViewById(R.id.textViewWaitPlayer)
         val textViewWelcome = findViewById<TextView>(R.id.textViewWelcomePlayer)
-        val playerName = intent.extras?.getString("name") ?: "No message found"
+        val playerName = intent.extras?.getString("name") ?: ""
+        playerEmail = intent.extras?.getString("email") ?: ""
 
-        if(playerName == ""){
+        if(playerName == "" || playerEmail == ""){
             finish()
         }
         val newString = textViewWelcome.text.toString() + " " + playerName + "!"
@@ -74,6 +76,8 @@ class StartActivity : AppCompatActivity() {
         roomData = hashMapOf(
             "player1" to playerName,
             "player2" to "unknown",
+            "player1Email" to playerEmail,
+            "player2Email" to "unknown",
             "status" to "open",
         )
         Log.i("TAG", "roomData: $roomData")
@@ -92,10 +96,12 @@ class StartActivity : AppCompatActivity() {
     private fun joinRoom(roomId: String, player: Int, playerName: String) {
         val roomsRef = db.collection("rooms").document(roomId)
         var player1NameFromFirebase: String? = "unknown"
+        var player1EmailFromFirebase: String? = "unknown"
         roomsRef.get()
             .addOnSuccessListener {
                 Log.i("TAG", "Getting data successed")
                 player1NameFromFirebase = it.getString("player1")
+                player1EmailFromFirebase = it.getString("player1Email")
             }
             .addOnFailureListener {
                 Log.i("TAG", "Getting data failed")
@@ -105,7 +111,8 @@ class StartActivity : AppCompatActivity() {
             // Update the room data to add the player as the second player
             roomData = hashMapOf(
                 "player2" to playerName,
-                "status" to "full"
+                "status" to "full",
+                "player2Email" to playerEmail,
             )
             Log.i("TAG", "roomData: $roomData")
 
@@ -116,6 +123,8 @@ class StartActivity : AppCompatActivity() {
                     val intent = Intent(this, MainActivity::class.java)
                     intent.putExtra("player1Name", player1NameFromFirebase)
                     intent.putExtra("player2Name", playerName)
+                    intent.putExtra("player1Email", player1EmailFromFirebase)
+                    intent.putExtra("player2Email", playerEmail)
                     intent.putExtra("room_id", roomId)
                     intent.putExtra("player", player)
                     startActivity(intent)
@@ -123,26 +132,32 @@ class StartActivity : AppCompatActivity() {
                 .addOnFailureListener { exception ->
                     Log.e("TAG", "Error joining room: ", exception)
                 }
-        } else {
+        } else { //player == 1
             val roomsRef2 = db.collection("rooms").document(roomId)
             var statusOfRoom: String
             var player2NameFromFB: String
+            var player2EmailFromFB: String
 
             register = roomsRef2.addSnapshotListener { value, _ -> //live follow when second user came so it can open new activity together
                 statusOfRoom = value?.getString("status")!!
                 player2NameFromFB = value.getString("player2")!!
+                player2EmailFromFB = value.getString("player2Email")!!
                 if (statusOfRoom == "full") {
-                    newAcitvity(playerName, player2NameFromFB, roomId, player)
+                    newAcitvity(playerName, player2NameFromFB, player2EmailFromFB, playerEmail, roomId, player)
                 }
             }
         }
     }
     private lateinit var register: ListenerRegistration
-    private fun newAcitvity(playerName: String, player2NameFromFB: String, roomId: String, player: Int){
+    private fun newAcitvity(playerName: String, player2NameFromFB: String, player2EmailFromFB: String, player1Email: String, roomId: String, player: Int){
         register.remove()
+        Log.i("TAG", "Player emails 1: $player1Email")
+        Log.i("TAG" ,"Player emails 2: $player2EmailFromFB")
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("player1Name", playerName)
             putExtra("player2Name", player2NameFromFB)
+            putExtra("player1Email", player1Email)
+            putExtra("player2Email", player2EmailFromFB)
             putExtra("room_id", roomId)
             putExtra("player", player)
             Log.i("TAG4", "vALUE OF PLAYER 1 NAME $playerName")
