@@ -130,8 +130,9 @@ class MainActivity : AppCompatActivity() {
                 buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
             }
         }
-
         timerFun(textViewTimer, player)
+        timer.start()
+
     }
 
     var stopFirstRound: Boolean = false
@@ -697,15 +698,5 @@ class MainActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Log.i("TAG", "Getting total wins or loses failed")
             }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        timer.start()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        timer.cancel()
     }
 }
