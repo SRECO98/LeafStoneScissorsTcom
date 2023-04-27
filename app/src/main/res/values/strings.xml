@@ -35,4 +35,6 @@
     <string name="____0">0</string>
     <string name="rematch">Rematch</string>
     <string name="new_game">New Game</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>

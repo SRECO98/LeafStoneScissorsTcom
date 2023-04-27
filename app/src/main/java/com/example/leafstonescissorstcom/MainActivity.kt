@@ -1,6 +1,7 @@
 package com.example.leafstonescissorstcom
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -13,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import com.example.leafstonescissorstcom.rematch.RematchMethods
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -22,7 +24,7 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private val NUMBER_OF_ROUNDS: Int = 5
-
+    //2x se poziva saveChooice ako stisnemo pick
     private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private lateinit var roomsChooseRef: DocumentReference
@@ -40,7 +42,6 @@ class MainActivity : AppCompatActivity() {
     private var player2Email: String? = ""
 
 
-
     //Elements of dialog:
     private lateinit var textViewWinOrLose: TextView
     private lateinit var textViewPlayerOneName: TextView
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonNewGame: AppCompatButton
     private lateinit var buttonAnalyze: AppCompatButton
     private var counterRounds: Int = 0
+    var buttonChoose2 = "0"
 
     //to fast covering choice of another player (blue and red) make it a little longer, when same choice make it half red/half blue somehow
 
@@ -94,28 +96,29 @@ class MainActivity : AppCompatActivity() {
             buttonStone.setBackgroundColor(Color.argb(120, 255, 255, 0))
             buttonLeaf.setBackgroundColor(Color.argb(58, 198, 182, 54))
             buttonSccissors.setBackgroundColor(Color.argb(58, 198, 182, 54))
-            playerChoose = "1"
+            buttonChoose2 = "1"
         }
         buttonLeaf.setOnClickListener {
             buttonLeaf.setBackgroundColor(Color.argb(120, 255, 255, 0))
             buttonStone.setBackgroundColor(Color.argb(58, 198, 182, 54))
             buttonSccissors.setBackgroundColor(Color.argb(58, 198, 182, 54))
-            playerChoose = "2"
+            buttonChoose2 = "2"
         }
         buttonSccissors.setOnClickListener {
             buttonSccissors.setBackgroundColor(Color.argb(120, 255, 255, 0))
             buttonStone.setBackgroundColor(Color.argb(58, 198, 182, 54))
             buttonLeaf.setBackgroundColor(Color.argb(58, 198, 182, 54))
-            playerChoose = "3"
+            buttonChoose2 = "3"
         }
 
         buttonGo.setOnClickListener {
             userPressedButtonLock = true
-            if(playerChoose == "0"){ //if one of players didnt chose a picture.
+            if(buttonChoose2 == "0"){ //if one of players didnt chose a picture.
                 Toast.makeText(this, "Please, choose one of the pictures!", Toast.LENGTH_SHORT).show()
             }else{
                 GlobalScope.launch {
                     try {
+                        playerChoose = buttonChoose2
                         saveChoose(player)
                     }catch (e: Exception){
                         Log.i("TAG", "exception global scope coroutine: $e")
@@ -132,7 +135,7 @@ class MainActivity : AppCompatActivity() {
         }
         timerFun(textViewTimer, player)
         timer.start()
-
+        rematchMethods(roomId, player)
     }
 
     var stopFirstRound: Boolean = false
@@ -152,7 +155,6 @@ class MainActivity : AppCompatActivity() {
                         buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
                         playerChoose = "0"
 
-
                         buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
                         buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
                         buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
@@ -165,6 +167,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFinish() {
+                buttonChoose2 = "0"
                 counterRounds += 1
                 textViewTimer.text = "9"
                 Log.i("tag", "User pressed button: $userPressedButtonLock")
@@ -288,7 +291,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonRematch.setOnClickListener {
-            textViewPlayerOneScore.text = "0"
+            rematchMethods.sendRematch(player = player, roomId = roomId)
+            buttonRematch.isEnabled = false
+            /*textViewPlayerOneScore.text = "0"
             textViewPlayerTwoScore.text = "0"
             buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
             buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
@@ -298,7 +303,7 @@ class MainActivity : AppCompatActivity() {
             buttonGo.isEnabled = true
             playerChoose = "0"
             timer.start()
-            dialog.cancel()
+            dialog.cancel()*/
         }
 
         buttonAnalyze.setOnClickListener {
@@ -329,7 +334,9 @@ class MainActivity : AppCompatActivity() {
     private val choosesPlayer1 = arrayListOf<Int>()
     private val choosesPlayer2 = arrayListOf<Int>()
     private fun saveChoose(player: Int){
-        Log.i("Choose", "saveChoose function called")
+        var i = 0
+        i += 1
+        Log.i("Choose", "saveChoose function called $i")
         //updating picture of player one in room
         if(player == 1){
             choosesPlayer1.add(playerChoose.toInt())
@@ -424,6 +431,8 @@ class MainActivity : AppCompatActivity() {
                 }else if(playerTwoChoose == "unknown"){
                     playerTwoChoose = "0"
                 }
+                Log.i("TAG", "Players choose before calculating: p1: $playerOneChoose ")
+                Log.i("TAG", "Players choose before calculating: p2: $playerTwoChoose ")
                 calculateWinner(playerOneChoose.toInt(), playerTwoChoose.toInt(), player)
                 //reset on zero in case someone didnt lock anything so it doesnt take last results.
                 playerChoose = "0"
@@ -699,4 +708,13 @@ class MainActivity : AppCompatActivity() {
                 Log.i("TAG", "Getting total wins or loses failed")
             }
     }
+
+    /*REMATCH LOGIC*******************************************************************************************/
+    val rematchMethods: RematchMethods = RematchMethods()
+    private fun rematchMethods(roomId: String, player: Int) {
+
+        rematchMethods.createRematchFieldsInFirebase(roomId = roomId)
+        rematchMethods.setListenerToFields(player = player, roomId = roomId, this)
+    }
+    /*********************************************************************************************************/
 }
