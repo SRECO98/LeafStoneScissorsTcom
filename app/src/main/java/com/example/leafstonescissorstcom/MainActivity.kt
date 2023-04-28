@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -22,7 +23,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-
+    //crystaldisk for checking quality of disk on server.
     private val NUMBER_OF_ROUNDS: Int = 5
     //2x se poziva saveChooice ako stisnemo pick
     private lateinit var timer: CountDownTimer
@@ -40,7 +41,6 @@ class MainActivity : AppCompatActivity() {
     private var player2Name: String? = ""
     private var player1Email: String? = ""
     private var player2Email: String? = ""
-
 
     //Elements of dialog:
     private lateinit var textViewWinOrLose: TextView
@@ -136,6 +136,12 @@ class MainActivity : AppCompatActivity() {
         timerFun(textViewTimer, player)
         timer.start()
         rematchMethods(roomId, player)
+
+        builder = AlertDialog.Builder(this)
+        customView = LayoutInflater.from(this).inflate(R.layout.custom_layout_dialog, null)
+        builder.setView(customView)
+        dialog = builder.create()
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT)) //brise bijele uglove iz dialoga !!! (FINALLY)
     }
 
     var stopFirstRound: Boolean = false
@@ -213,12 +219,12 @@ class MainActivity : AppCompatActivity() {
         "choosesArrayPlayer2" to "empty",
     )
 
+    private lateinit var builder: AlertDialog.Builder
+    private lateinit var customView: View
+    private lateinit var dialog: AlertDialog
+
     @SuppressLint("SetTextI18n")
     private fun dialogGameOver(player: Int){
-
-        val builder = AlertDialog.Builder(this)
-        val customView = LayoutInflater.from(this).inflate(R.layout.custom_layout_dialog, null)
-        builder.setView(customView)
 
         //Dialog View elements
         textViewWinOrLose = customView.findViewById(R.id.textViewWinOrLose)
@@ -274,8 +280,6 @@ class MainActivity : AppCompatActivity() {
         textViewPlayerOneName.text = player1Name
         textViewPlayerTwoName.text = player2Name
 
-        val dialog = builder.create()
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT)) //brise bijele uglove iz dialoga !!! (FINALLY)
         dialog.show()
 
         buttonNewGame.setOnClickListener {
@@ -309,6 +313,10 @@ class MainActivity : AppCompatActivity() {
         buttonAnalyze.setOnClickListener {
             loadAnalyzedActivity()
         }
+    }
+
+    fun rematchMatchmaking(){
+        this.dialog.dismiss() //closing dialog with scores
     }
 
     private fun loadAnalyzedActivity() {

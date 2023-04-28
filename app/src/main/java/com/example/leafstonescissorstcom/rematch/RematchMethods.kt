@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatButton
+import com.example.leafstonescissorstcom.MainActivity
 import com.example.leafstonescissorstcom.R
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -56,6 +57,9 @@ class RematchMethods {
             if(statusRequestPLayer1.toBoolean() && statusRequestPLayer2.toBoolean()){ //if user accepted rematch
                 Log.i("TAG", "Both true in base")
                 dialog.dismiss()
+                registerListener.remove()
+                val mainActivity = MainActivity()
+                mainActivity.rematchMatchmaking() //starting new game between two same players
             }else if(player == 1 && statusRequestPLayer2.toBoolean()){ //seinding rematch request to player2
                 showDialog(context, "player1Rematch")
             }else if(player == 2 && statusRequestPLayer1.toBoolean()){ //sending rematch request to player1
