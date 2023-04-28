@@ -36,7 +36,7 @@
         app:layout_constraintTop_toBottomOf="@id/textViewRequest">
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/buttonRematch"
+            android:id="@+id/buttonYes"
             android:layout_width="130dp"
             android:layout_height="wrap_content"
             android:text="@string/yes"
@@ -48,7 +48,7 @@
             android:textColor="#F8F8F8" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/buttonNewGame"
+            android:id="@+id/buttonNo"
             android:layout_width="130dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"

@@ -5,7 +5,9 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.AppCompatButton
 import com.example.leafstonescissorstcom.R
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,16 +39,27 @@ class RematchMethods {
 
     lateinit var statusRequestPLayer1: String
     lateinit var statusRequestPLayer2: String
-
+    var onlyOnce: Boolean = false
     fun setListenerToFields(player: Int, roomId: String, context: Context){
         docRef = db.collection("rooms").document(roomId)
         registerListener = docRef.addSnapshotListener { value, _ ->
             statusRequestPLayer1 = value?.getString("player1Rematch")!!
             statusRequestPLayer2 = value.getString("player2Rematch")!!
-            if(player == 1 && statusRequestPLayer2.toBoolean()){
-                showDialog(context)
-            }else if(player == 2 && statusRequestPLayer1.toBoolean()){
-                showDialog(context)
+            if( (statusRequestPLayer1.toBoolean() || statusRequestPLayer2.toBoolean()) && !onlyOnce){
+                onlyOnce = true //We must not make object dialog twice because we cant cancel it later in code, we lose reference to it.
+                builder = AlertDialog.Builder(context)
+                customView = LayoutInflater.from(context).inflate(R.layout.custom_layout_rematch, null)
+                builder.setView(customView)
+                dialog = builder.create()
+                dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT)) //brise bijele uglove iz dialoga !!! (FINALLY)
+            }
+            if(statusRequestPLayer1.toBoolean() && statusRequestPLayer2.toBoolean()){ //if user accepted rematch
+                Log.i("TAG", "Both true in base")
+                dialog.dismiss()
+            }else if(player == 1 && statusRequestPLayer2.toBoolean()){ //seinding rematch request to player2
+                showDialog(context, "player1Rematch")
+            }else if(player == 2 && statusRequestPLayer1.toBoolean()){ //sending rematch request to player1
+                showDialog(context, "player2Rematch")
             }
         }
     }
@@ -73,14 +86,29 @@ class RematchMethods {
             }
     }
 
-    private fun showDialog(context: Context) {
-        val builder = AlertDialog.Builder(context)
-        val customView = LayoutInflater.from(context).inflate(R.layout.custom_layout_rematch, null)
-        builder.setView(customView)
+    private lateinit var builder: AlertDialog.Builder
+    private lateinit var customView: View
+    private lateinit var dialog: AlertDialog
 
-        val dialog = builder.create()
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT)) //brise bijele uglove iz dialoga !!! (FINALLY)
+    private fun showDialog(context: Context, firebaseField: String) {
+
         dialog.show()
+
+        val buttonYes: AppCompatButton = customView.findViewById(R.id.buttonYes)
+        val buttonNo: AppCompatButton = customView.findViewById(R.id.buttonNo)
+
+        buttonYes.setOnClickListener {
+            docRef.update(firebaseField, "true")
+                .addOnSuccessListener {
+                    Log.i("TAG", "Successfully added true to second field for rematch request")
+                }
+                .addOnFailureListener {
+                    Log.i("TAG", "Unsuccessfully added true to second field for rematch request")
+                }
+        }
+        buttonNo.setOnClickListener {
+            dialog.cancel()
+        }
     }
 
     private fun stopListeningToFirebase(){
