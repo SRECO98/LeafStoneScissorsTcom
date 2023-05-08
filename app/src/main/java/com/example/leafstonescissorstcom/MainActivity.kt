@@ -1,7 +1,6 @@
 package com.example.leafstonescissorstcom
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -178,19 +177,19 @@ class MainActivity : AppCompatActivity() {
                 textViewTimer.text = "9"
                 Log.i("tag", "User pressed button: $userPressedButtonLock")
                 if(!userPressedButtonLock){
-                        GlobalScope.launch {
-                            try {
-                                saveChoose(player)
-                            }catch (e: Exception){
-                                Log.i("TAG", "exception global scope coroutine: $e")
-                            }
+                    GlobalScope.launch {
+                        try {
+                            saveChoose(player)
+                        }catch (e: Exception){
+                            Log.i("TAG", "exception global scope coroutine: $e")
                         }
-                        buttonGo.isEnabled = false //turn off buttons because user checked his choice
-                        buttonStone.isEnabled = false
-                        buttonLeaf.isEnabled = false
-                        buttonSccissors.isEnabled = false
-                        buttonGo.setTextColor(Color.WHITE)
-                        buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
+                    }
+                    buttonGo.isEnabled = false //turn off buttons because user checked his choice
+                    buttonStone.isEnabled = false
+                    buttonLeaf.isEnabled = false
+                    buttonSccissors.isEnabled = false
+                    buttonGo.setTextColor(Color.WHITE)
+                    buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
                 }else{
                     userPressedButtonLock = false
                 }
@@ -697,7 +696,7 @@ class MainActivity : AppCompatActivity() {
                     Log.i("Choose", "Failed while adding plus one to FB for totalWins")
                 }
         }catch (e: Exception){
-                Log.i("TAG", "EXCEPTION IS: $e")
+            Log.i("TAG", "EXCEPTION IS: $e")
         }
     }
 
