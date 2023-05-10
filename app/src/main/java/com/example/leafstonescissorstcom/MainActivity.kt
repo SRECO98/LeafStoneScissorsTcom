@@ -40,6 +40,10 @@ class MainActivity : AppCompatActivity() {
     private var player2Name: String? = ""
     private var player1Email: String? = ""
     private var player2Email: String? = ""
+    private var player1Tokens: String? = ""
+    private var player2Tokens: String? = ""
+    private var player1TokensAfterGame: Int = 0
+    private var player2TokensAfterGame: Int = 0
 
     //Elements of dialog:
     private lateinit var textViewWinOrLose: TextView
@@ -49,6 +53,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textViewPlayerVSPlayer2: TextView
     private lateinit var textViewTotalWinsScore: TextView
     private lateinit var textViewTotalLosesScore: TextView
+    private lateinit var textViewTokens: TextView
     private lateinit var buttonRematch: AppCompatButton
     private lateinit var buttonNewGame: AppCompatButton
     private lateinit var buttonAnalyze: AppCompatButton
@@ -65,15 +70,17 @@ class MainActivity : AppCompatActivity() {
         buttonLeaf = findViewById(R.id.imageLeaf)
         buttonSccissors = findViewById(R.id.imageSccissors)
         buttonGo = findViewById(R.id.buttonChoose)
-        val textViewPlayerOneName: TextView = findViewById(R.id.playerOneName)
-        val textViewPlayerTwoName: TextView = findViewById(R.id.playerTwoName)
         textViewPlayerOneScore = findViewById(R.id.playerOneScore)
         textViewPlayerTwoScore = findViewById(R.id.playerTwoScore)
+        val textViewPlayerOneName: TextView = findViewById(R.id.playerOneName)
+        val textViewPlayerTwoName: TextView = findViewById(R.id.playerTwoName)
         val textViewTimer: TextView = findViewById(R.id.textViewTimer)
         player1Name = intent.getStringExtra("player1Name")
         player2Name = intent.getStringExtra("player2Name")
         player1Email = intent.getStringExtra("player1Email")
         player2Email = intent.getStringExtra("player2Email")
+        player1Tokens = intent.getStringExtra("player1Tokens")
+        player2Tokens = intent.getStringExtra("player2Tokens")
         Log.i("TAG", "emailovi!! $player1Email $player2Email")
         Log.i("TAG", "emailovi!! $player1Email $player2Email")
         roomId = intent.getStringExtra("room_id")!!
@@ -90,6 +97,8 @@ class MainActivity : AppCompatActivity() {
 
         textViewPlayerOneName.text = player1Name
         textViewPlayerTwoName.text = player2Name
+        player1TokensAfterGame = player1Tokens!!.toInt()
+        player2TokensAfterGame = player2Tokens!!.toInt()
 
         buttonStone.setOnClickListener {
             buttonStone.setBackgroundColor(Color.argb(120, 255, 255, 0))
@@ -134,13 +143,14 @@ class MainActivity : AppCompatActivity() {
         }
         timerFun(textViewTimer, player)
         timer.start()
-        rematchMethods(roomId, player)
 
         builder = AlertDialog.Builder(this)
         customView = LayoutInflater.from(this).inflate(R.layout.custom_layout_dialog, null)
         builder.setView(customView)
         dialog = builder.create()
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT)) //brise bijele uglove iz dialoga !!! (FINALLY)
+
+        rematchMethods(roomId, player)
     }
 
     var stopFirstRound: Boolean = false
@@ -233,6 +243,7 @@ class MainActivity : AppCompatActivity() {
         textViewPlayerVSPlayer2 = customView.findViewById(R.id.textViewPlayerVSPlayer2)
         textViewTotalWinsScore = customView.findViewById(R.id.textViewTotalWinsScore)
         textViewTotalLosesScore = customView.findViewById(R.id.textViewTotalLosesScore)
+        textViewTokens = customView.findViewById(R.id.textViewTokensDialog)
         buttonRematch = customView.findViewById(R.id.buttonRematch)
         buttonNewGame = customView.findViewById(R.id.buttonNewGame)
         buttonAnalyze = customView.findViewById(R.id.buttonAnalyze)
@@ -246,7 +257,9 @@ class MainActivity : AppCompatActivity() {
                 val totalWins2: Int = Integer.parseInt(totalWins) + 1  //getting value from base before game plus 1
                 textViewTotalWinsScore.text = totalWins2.toString() //putting taht value on screen
                 textViewTotalLosesScore.text = totalLoses // same value we get from base passing to screen because it didnt change
-                updatingTotalWinsAndTotalLosesInFirebase(player1Email!!, totalWins2.toString(), totalLoses) //adding new values to base
+                val tokens = player1TokensAfterGame + 50
+                textViewTokens.text = tokens.toString()
+                updatingTotalWinsTotalLosesTokensInFB(player1Email!!, totalWins2.toString(), totalLoses, tokens.toString()) //adding new values to base
             }else{
                 textViewWinOrLose.text = "Defeat"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer2.text.toString())
@@ -254,7 +267,9 @@ class MainActivity : AppCompatActivity() {
                 val totalLoses2: Int = Integer.parseInt(totalLoses) + 1
                 textViewTotalWinsScore.text = totalWins
                 textViewTotalLosesScore.text = totalLoses2.toString()
-                updatingTotalWinsAndTotalLosesInFirebase(player1Email!!, totalWins, totalLoses2.toString())
+                val tokens = player1TokensAfterGame - 50
+                textViewTokens.text = tokens.toString()
+                updatingTotalWinsTotalLosesTokensInFB(player1Email!!, totalWins, totalLoses2.toString(), tokens.toString())
             }
         }else{ //player == 2
             if(currentValuePlayerTwo == 5){
@@ -264,7 +279,9 @@ class MainActivity : AppCompatActivity() {
                 val totalWins2: Int = Integer.parseInt(totalWins) + 1
                 textViewTotalWinsScore.text = totalWins2.toString()
                 textViewTotalLosesScore.text = totalLoses
-                updatingTotalWinsAndTotalLosesInFirebase(player2Email!!, totalWins2.toString(), totalLoses)
+                val tokens = player2TokensAfterGame + 50
+                textViewTokens.text = tokens.toString()
+                updatingTotalWinsTotalLosesTokensInFB(player2Email!!, totalWins2.toString(), totalLoses, tokens.toString())
             }else{
                 textViewWinOrLose.text = "Defeat"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer1.text.toString())
@@ -272,7 +289,9 @@ class MainActivity : AppCompatActivity() {
                 val totalLoses2: Int = Integer.parseInt(textViewTotalLosesScore.text.toString()) + 1
                 textViewTotalWinsScore.text = totalWins
                 textViewTotalLosesScore.text = totalLoses2.toString()
-                updatingTotalWinsAndTotalLosesInFirebase(player2Email!!, totalWins, totalLoses2.toString())
+                val tokens = player2TokensAfterGame - 50
+                textViewTokens.text = tokens.toString()
+                updatingTotalWinsTotalLosesTokensInFB(player2Email!!, totalWins, totalLoses2.toString(), tokens.toString())
             }
         }
 
@@ -296,7 +315,16 @@ class MainActivity : AppCompatActivity() {
         buttonRematch.setOnClickListener {
             rematchMethods.sendRematch(player = player, roomId = roomId)
             buttonRematch.isEnabled = false
-            /*textViewPlayerOneScore.text = "0"
+        }
+
+        buttonAnalyze.setOnClickListener {
+            loadAnalyzedActivity()
+        }
+    }
+
+    fun rematchMatchmaking(dialogMain: AlertDialog){
+        dialogMain.dismiss() //closing dialog with scores
+        textViewPlayerOneScore.text = "0"
             textViewPlayerTwoScore.text = "0"
             buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
             buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
@@ -306,16 +334,6 @@ class MainActivity : AppCompatActivity() {
             buttonGo.isEnabled = true
             playerChoose = "0"
             timer.start()
-            dialog.cancel()*/
-        }
-
-        buttonAnalyze.setOnClickListener {
-            loadAnalyzedActivity()
-        }
-    }
-
-    fun rematchMatchmaking(){
-        this.dialog.dismiss() //closing dialog with scores
     }
 
     private fun loadAnalyzedActivity() {
@@ -685,7 +703,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updatingTotalWinsAndTotalLosesInFirebase(email: String, totalWins: String, totalLoses: String) {
+    private fun updatingTotalWinsTotalLosesTokensInFB(email: String, totalWins: String, totalLoses: String, tokens: String) {
         val docRef = db.collection("nameOfUsers").document(email)
         try{
             docRef.update("totalWins", totalWins, "totalLoses", totalLoses)
@@ -721,7 +739,7 @@ class MainActivity : AppCompatActivity() {
     private fun rematchMethods(roomId: String, player: Int) {
 
         rematchMethods.createRematchFieldsInFirebase(roomId = roomId)
-        rematchMethods.setListenerToFields(player = player, roomId = roomId, this)
+        rematchMethods.setListenerToFields(dialogMain = dialog, player = player, roomId = roomId, this)
     }
     /*********************************************************************************************************/
 }

@@ -16,7 +16,9 @@ class StartActivity : AppCompatActivity() {
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private var roomData = hashMapOf("player1" to "value", "player2" to "Value2", "status" to "default")
     private lateinit var textViewWaiting: TextView
+    private lateinit var textViewTokens: TextView
     var playerEmail = ""
+    var playerTokens = ""
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,16 +27,19 @@ class StartActivity : AppCompatActivity() {
 
         val buttonStartGame = findViewById<AppCompatButton>(R.id.buttonStartGame)
         textViewWaiting = findViewById(R.id.textViewWaitPlayer)
+        textViewTokens = findViewById(R.id.textViewTokens)
         val textViewWelcome = findViewById<TextView>(R.id.textViewWelcomePlayer)
         val playerName = intent.extras?.getString("name") ?: ""
         playerEmail = intent.extras?.getString("email") ?: ""
+        playerTokens = intent.extras?.getString("tokens") ?: ""
 
-        if(playerName == "" || playerEmail == ""){
+        if(playerName == "" || playerEmail == "" || playerTokens == ""){
             finish()
         }
         val newString = textViewWelcome.text.toString() + " " + playerName + "!"
         Log.i("getnick", "Change textview: $newString")
         textViewWelcome.text = newString
+        textViewTokens.text = playerTokens
 
         buttonStartGame.setOnClickListener {
             matchmake(playerName)
@@ -78,6 +83,8 @@ class StartActivity : AppCompatActivity() {
             "player2" to "unknown",
             "player1Email" to playerEmail,
             "player2Email" to "unknown",
+            "player1Tokens" to playerTokens,
+            "player2Tokens" to "unknown",
             "status" to "open",
         )
         Log.i("TAG", "roomData: $roomData")
@@ -97,11 +104,13 @@ class StartActivity : AppCompatActivity() {
         val roomsRef = db.collection("rooms").document(roomId)
         var player1NameFromFirebase: String? = "unknown"
         var player1EmailFromFirebase: String? = "unknown"
+        var player1TokensFromFirebase: String? = "unknown"
         roomsRef.get()
             .addOnSuccessListener {
                 Log.i("TAG", "Getting data successed")
                 player1NameFromFirebase = it.getString("player1")
                 player1EmailFromFirebase = it.getString("player1Email")
+                player1TokensFromFirebase = it.getString("player1Tokens")
             }
             .addOnFailureListener {
                 Log.i("TAG", "Getting data failed")
@@ -113,6 +122,7 @@ class StartActivity : AppCompatActivity() {
                 "player2" to playerName,
                 "status" to "full",
                 "player2Email" to playerEmail,
+                "player2Tokens" to playerTokens,
             )
             Log.i("TAG", "roomData: $roomData")
 
@@ -125,6 +135,8 @@ class StartActivity : AppCompatActivity() {
                     intent.putExtra("player2Name", playerName)
                     intent.putExtra("player1Email", player1EmailFromFirebase)
                     intent.putExtra("player2Email", playerEmail)
+                    intent.putExtra("player1Tokens", player1TokensFromFirebase)
+                    intent.putExtra("player2Tokens", playerTokens)
                     intent.putExtra("room_id", roomId)
                     intent.putExtra("player", player)
                     startActivity(intent)
@@ -137,19 +149,22 @@ class StartActivity : AppCompatActivity() {
             var statusOfRoom: String
             var player2NameFromFB: String
             var player2EmailFromFB: String
+            var player2TokensFromFB: String
 
             register = roomsRef2.addSnapshotListener { value, _ -> //live follow when second user came so it can open new activity together
                 statusOfRoom = value?.getString("status")!!
                 player2NameFromFB = value.getString("player2")!!
                 player2EmailFromFB = value.getString("player2Email")!!
+                player2TokensFromFB = value.getString("player2Tokens")!!
                 if (statusOfRoom == "full") {
-                    newAcitvity(playerName, player2NameFromFB, player2EmailFromFB, playerEmail, roomId, player)
+                    newAcitvity(playerName, player2NameFromFB, player2EmailFromFB, playerEmail, roomId, player, playerTokens, player2TokensFromFB)
                 }
             }
         }
     }
     private lateinit var register: ListenerRegistration
-    private fun newAcitvity(playerName: String, player2NameFromFB: String, player2EmailFromFB: String, player1Email: String, roomId: String, player: Int){
+    private fun newAcitvity(playerName: String, player2NameFromFB: String, player2EmailFromFB: String,
+                            player1Email: String, roomId: String, player: Int, tokensPlayer1: String, tokensPlayer2: String){
         register.remove()
         Log.i("TAG", "Player emails 1: $player1Email")
         Log.i("TAG" ,"Player emails 2: $player2EmailFromFB")
@@ -160,6 +175,8 @@ class StartActivity : AppCompatActivity() {
             putExtra("player2Email", player2EmailFromFB)
             putExtra("room_id", roomId)
             putExtra("player", player)
+            intent.putExtra("player1Tokens", tokensPlayer1)
+            intent.putExtra("player2Tokens", tokensPlayer2)
             Log.i("TAG4", "vALUE OF PLAYER 1 NAME $playerName")
             Log.i("TAG4", "vALUE OF PLAYER 2 NAME $player2NameFromFB")
         }

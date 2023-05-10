@@ -41,7 +41,7 @@ class RematchMethods {
     lateinit var statusRequestPLayer1: String
     lateinit var statusRequestPLayer2: String
     var onlyOnce: Boolean = false
-    fun setListenerToFields(player: Int, roomId: String, context: Context){
+    fun setListenerToFields(dialogMain: AlertDialog, player: Int, roomId: String, context: Context, ){
         docRef = db.collection("rooms").document(roomId)
         registerListener = docRef.addSnapshotListener { value, _ ->
             statusRequestPLayer1 = value?.getString("player1Rematch")!!
@@ -59,7 +59,7 @@ class RematchMethods {
                 dialog.dismiss()
                 registerListener.remove()
                 val mainActivity = MainActivity()
-                mainActivity.rematchMatchmaking() //starting new game between two same players
+                mainActivity.rematchMatchmaking(dialogMain) //starting new game between two same players
             }else if(player == 1 && statusRequestPLayer2.toBoolean()){ //seinding rematch request to player2
                 showDialog(context, "player1Rematch")
             }else if(player == 2 && statusRequestPLayer1.toBoolean()){ //sending rematch request to player1

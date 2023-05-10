@@ -88,6 +88,7 @@ class RegisterActivity : AppCompatActivity() {
         name.put("name", nickName)
         name.put("totalWins", "0")
         name.put("totalLoses", "0")
+        name.put("tokens", "1000")
 
         docRef.set(name)
             .addOnSuccessListener {

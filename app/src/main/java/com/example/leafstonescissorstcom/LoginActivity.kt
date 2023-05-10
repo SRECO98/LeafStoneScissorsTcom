@@ -20,6 +20,7 @@ class LoginActivity : AppCompatActivity() {
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private lateinit var docRef: DocumentReference
     private var playerName: String? = ""
+    private var playerTokens: String? = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +66,14 @@ class LoginActivity : AppCompatActivity() {
                 Log.i("getnick", "Getting nick name failed")
             }
 
+        docRef.get().addOnSuccessListener {
+            playerTokens = it.getString("tokens")
+            Log.i("getnick", "Getting nick name successed $playerTokens")
+        }
+            .addOnFailureListener {
+                Log.i("getnick", "Getting nick name failed")
+            }
+
         /*Sign in existing users*/
         auth.signInWithEmailAndPassword(emailInput, passwordImput)
             .addOnCompleteListener(this) { task ->
@@ -73,6 +82,7 @@ class LoginActivity : AppCompatActivity() {
                     val intent = Intent(this, StartActivity::class.java)
                     intent.putExtra("name", playerName)
                     intent.putExtra("email", emailInput)
+                    intent.putExtra("tokens", playerTokens)
                     startActivity(intent)
                     Log.i("TAG", "Authentication successed.")
                     //val user = auth.currentUser
