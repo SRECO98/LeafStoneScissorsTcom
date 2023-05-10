@@ -32,6 +32,7 @@ class StartActivity : AppCompatActivity() {
         val playerName = intent.extras?.getString("name") ?: ""
         playerEmail = intent.extras?.getString("email") ?: ""
         playerTokens = intent.extras?.getString("tokens") ?: ""
+        Log.i("TAG", " $playerTokens check tokens player one" )
 
         if(playerName == "" || playerEmail == "" || playerTokens == ""){
             finish()
@@ -175,8 +176,8 @@ class StartActivity : AppCompatActivity() {
             putExtra("player2Email", player2EmailFromFB)
             putExtra("room_id", roomId)
             putExtra("player", player)
-            intent.putExtra("player1Tokens", tokensPlayer1)
-            intent.putExtra("player2Tokens", tokensPlayer2)
+            putExtra("player1Tokens", tokensPlayer1)
+            putExtra("player2Tokens", tokensPlayer2)
             Log.i("TAG4", "vALUE OF PLAYER 1 NAME $playerName")
             Log.i("TAG4", "vALUE OF PLAYER 2 NAME $player2NameFromFB")
         }

@@ -22,6 +22,7 @@ class RematchMethods {
     private lateinit var registerListener: ListenerRegistration
     private var roomData = hashMapOf("player1Rematch" to "false", "player2Rematch" to "false")
 
+    private var rematchListener: RematchListener? = null
     fun createRematchFieldsInFirebase(roomId: String){
         docRef = db.collection("rooms").document(roomId)
 
@@ -118,4 +119,9 @@ class RematchMethods {
     private fun stopListeningToFirebase(){
         registerListener.remove()
     }
+
+    interface RematchListener {
+        fun onRematch()
+    }
+
 }
