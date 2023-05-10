@@ -98,8 +98,6 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener {
 
         textViewPlayerOneName.text = player1Name
         textViewPlayerTwoName.text = player2Name
-        player1TokensAfterGame = player1Tokens!!.toInt()
-        player2TokensAfterGame = player2Tokens!!.toInt()
 
         buttonStone.setOnClickListener {
             buttonStone.setBackgroundColor(Color.argb(120, 255, 255, 0))
@@ -258,9 +256,9 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener {
                 val totalWins2: Int = Integer.parseInt(totalWins) + 1  //getting value from base before game plus 1
                 textViewTotalWinsScore.text = totalWins2.toString() //putting taht value on screen
                 textViewTotalLosesScore.text = totalLoses // same value we get from base passing to screen because it didnt change
-                val tokens = player1TokensAfterGame + 50
-                textViewTokens.text = tokens.toString()
-                updatingTotalWinsTotalLosesTokensInFB(player1Email!!, totalWins2.toString(), totalLoses, tokens.toString()) //adding new values to base
+                player1TokensAfterGame = player1Tokens!!.toInt() + 50
+                textViewTokens.text = player1TokensAfterGame.toString()
+                updatingTotalWinsTotalLosesTokensInFB(player1Email!!, totalWins2.toString(), totalLoses, player1TokensAfterGame.toString()) //adding new values to base
             }else{
                 textViewWinOrLose.text = "Defeat"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer2.text.toString())
@@ -268,9 +266,9 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener {
                 val totalLoses2: Int = Integer.parseInt(totalLoses) + 1
                 textViewTotalWinsScore.text = totalWins
                 textViewTotalLosesScore.text = totalLoses2.toString()
-                val tokens = player1TokensAfterGame - 50
-                textViewTokens.text = tokens.toString()
-                updatingTotalWinsTotalLosesTokensInFB(player1Email!!, totalWins, totalLoses2.toString(), tokens.toString())
+                player1TokensAfterGame = player1Tokens!!.toInt() - 50
+                textViewTokens.text = player1TokensAfterGame.toString()
+                updatingTotalWinsTotalLosesTokensInFB(player1Email!!, totalWins, totalLoses2.toString(), player1TokensAfterGame.toString())
             }
         }else{ //player == 2
             if(currentValuePlayerTwo == 5){
@@ -280,9 +278,9 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener {
                 val totalWins2: Int = Integer.parseInt(totalWins) + 1
                 textViewTotalWinsScore.text = totalWins2.toString()
                 textViewTotalLosesScore.text = totalLoses
-                val tokens = player2TokensAfterGame + 50
-                textViewTokens.text = tokens.toString()
-                updatingTotalWinsTotalLosesTokensInFB(player2Email!!, totalWins2.toString(), totalLoses, tokens.toString())
+                player2TokensAfterGame = player2Tokens!!.toInt() + 50
+                textViewTokens.text = player2TokensAfterGame.toString()
+                updatingTotalWinsTotalLosesTokensInFB(player2Email!!, totalWins2.toString(), totalLoses, player2TokensAfterGame.toString())
             }else{
                 textViewWinOrLose.text = "Defeat"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer1.text.toString())
@@ -290,9 +288,9 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener {
                 val totalLoses2: Int = Integer.parseInt(textViewTotalLosesScore.text.toString()) + 1
                 textViewTotalWinsScore.text = totalWins
                 textViewTotalLosesScore.text = totalLoses2.toString()
-                val tokens = player2TokensAfterGame - 50
-                textViewTokens.text = tokens.toString()
-                updatingTotalWinsTotalLosesTokensInFB(player2Email!!, totalWins, totalLoses2.toString(), tokens.toString())
+                player2TokensAfterGame = player2Tokens!!.toInt() - 50
+                textViewTokens.text = player2TokensAfterGame.toString()
+                updatingTotalWinsTotalLosesTokensInFB(player2Email!!, totalWins, totalLoses2.toString(), player2TokensAfterGame.toString())
             }
         }
 
@@ -306,11 +304,11 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener {
                 if(player == 1){
                     putExtra("name", player1Name)
                     putExtra("email", player1Email)
-                    putExtra("tokens", player1TokensAfterGame.toString())
+                    putExtra("tokens", player1TokensAfterGame.toString()) //sending new token score
                 }else{
                     putExtra("name", player2Name)
                     putExtra("email", player2Email)
-                    putExtra("tokens", player2TokensAfterGame.toString())
+                    putExtra("tokens", player2TokensAfterGame.toString()) //sending new token score
                 }
             }
             startActivity(intent)
@@ -698,7 +696,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener {
     private fun updatingTotalWinsTotalLosesTokensInFB(email: String, totalWins: String, totalLoses: String, tokens: String) {
         val docRef = db.collection("nameOfUsers").document(email)
         try{
-            docRef.update("totalWins", totalWins, "totalLoses", totalLoses)
+            docRef.update("totalWins", totalWins, "totalLoses", totalLoses, "tokens", tokens)
                 .addOnSuccessListener {
                     Log.i("Choose", "Successfully added plus one to total wins in FB")
                 }
