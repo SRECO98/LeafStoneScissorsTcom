@@ -22,7 +22,6 @@ class RematchMethods {
     private lateinit var registerListener: ListenerRegistration
     private var roomData = hashMapOf("player1Rematch" to "false", "player2Rematch" to "false")
 
-    private var rematchListener: RematchListener? = null
     fun createRematchFieldsInFirebase(roomId: String){
         docRef = db.collection("rooms").document(roomId)
 
@@ -42,7 +41,7 @@ class RematchMethods {
     lateinit var statusRequestPLayer1: String
     lateinit var statusRequestPLayer2: String
     var onlyOnce: Boolean = false
-    fun setListenerToFields(dialogMain: AlertDialog, player: Int, roomId: String, context: Context, ){
+    fun setListenerToFields(player: Int, roomId: String, context: Context, ){
         docRef = db.collection("rooms").document(roomId)
         registerListener = docRef.addSnapshotListener { value, _ ->
             statusRequestPLayer1 = value?.getString("player1Rematch")!!
@@ -59,12 +58,13 @@ class RematchMethods {
                 Log.i("TAG", "Both true in base")
                 dialog.dismiss()
                 registerListener.remove()
-                val mainActivity = MainActivity()
-                mainActivity.rematchMatchmaking(dialogMain) //starting new game between two same players
+                rematchListener?.onRematch()
+                //val mainActivity = MainActivity()
+                //mainActivity.rematchMatchmaking(dialogMain) //starting new game between two same players
             }else if(player == 1 && statusRequestPLayer2.toBoolean()){ //seinding rematch request to player2
-                showDialog(context, "player1Rematch")
+                showDialog("player1Rematch")
             }else if(player == 2 && statusRequestPLayer1.toBoolean()){ //sending rematch request to player1
-                showDialog(context, "player2Rematch")
+                showDialog("player2Rematch")
             }
         }
     }
@@ -95,7 +95,7 @@ class RematchMethods {
     private lateinit var customView: View
     private lateinit var dialog: AlertDialog
 
-    private fun showDialog(context: Context, firebaseField: String) {
+    private fun showDialog(firebaseField: String) {
 
         dialog.show()
 
@@ -120,8 +120,14 @@ class RematchMethods {
         registerListener.remove()
     }
 
+    private var rematchListener: RematchListener? = null
+
     interface RematchListener {
         fun onRematch()
+    }
+
+    fun setRematchListener(listener: RematchListener) {
+        rematchListener = listener
     }
 
 }

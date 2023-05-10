@@ -141,6 +141,7 @@ class StartActivity : AppCompatActivity() {
                     intent.putExtra("room_id", roomId)
                     intent.putExtra("player", player)
                     startActivity(intent)
+                    finish()
                 }
                 .addOnFailureListener { exception ->
                     Log.e("TAG", "Error joining room: ", exception)
@@ -182,5 +183,6 @@ class StartActivity : AppCompatActivity() {
             Log.i("TAG4", "vALUE OF PLAYER 2 NAME $player2NameFromFB")
         }
         startActivity(intent)
+        finish()
     }
 }

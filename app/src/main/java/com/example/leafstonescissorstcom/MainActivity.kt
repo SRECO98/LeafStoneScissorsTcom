@@ -21,9 +21,10 @@ import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), RematchMethods.RematchListener {
     //crystaldisk for checking quality of disk on server.
     private val NUMBER_OF_ROUNDS: Int = 5
+
     //2x se poziva saveChooice ako stisnemo pick
     private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -304,11 +305,16 @@ class MainActivity : AppCompatActivity() {
             val intent: Intent = Intent(this, StartActivity::class.java).apply {
                 if(player == 1){
                     putExtra("name", player1Name)
+                    putExtra("email", player1Email)
+                    putExtra("tokens", player1TokensAfterGame.toString())
                 }else{
                     putExtra("name", player2Name)
+                    putExtra("email", player2Email)
+                    putExtra("tokens", player2TokensAfterGame.toString())
                 }
             }
             startActivity(intent)
+            dialog.dismiss()
             finish()
         }
 
@@ -320,20 +326,6 @@ class MainActivity : AppCompatActivity() {
         buttonAnalyze.setOnClickListener {
             loadAnalyzedActivity()
         }
-    }
-
-    fun rematchMatchmaking(dialogMain: AlertDialog){
-        dialogMain.dismiss() //closing dialog with scores
-        textViewPlayerOneScore.text = "0"
-            textViewPlayerTwoScore.text = "0"
-            buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
-            buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
-            buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
-            buttonGo.setTextColor(Color.BLACK)
-            buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
-            buttonGo.isEnabled = true
-            playerChoose = "0"
-            timer.start()
     }
 
     private fun loadAnalyzedActivity() {
@@ -738,8 +730,24 @@ class MainActivity : AppCompatActivity() {
     val rematchMethods: RematchMethods = RematchMethods()
     private fun rematchMethods(roomId: String, player: Int) {
 
+        rematchMethods.setRematchListener(this)
         rematchMethods.createRematchFieldsInFirebase(roomId = roomId)
-        rematchMethods.setListenerToFields(dialogMain = dialog, player = player, roomId = roomId, this)
+        rematchMethods.setListenerToFields(player = player, roomId = roomId, this)
+    }
+
+    override fun onRematch() {
+        Log.i("TAG", "Rematch fun from main activity")
+        dialog.dismiss() //closing dialog with scores
+        textViewPlayerOneScore.text = "0"
+        textViewPlayerTwoScore.text = "0"
+        buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
+        buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
+        buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
+        buttonGo.setTextColor(Color.BLACK)
+        buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
+        buttonGo.isEnabled = true
+        playerChoose = "0"
+        timer.start()
     }
     /*********************************************************************************************************/
 }
