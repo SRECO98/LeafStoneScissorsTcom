@@ -4,12 +4,12 @@
     <string name="rook">Rook</string>
     <string name="leaf">Leaf</string>
     <string name="sccissors">Sccissors</string>
-    <string name="logging">LOGGING</string>
+    <string name="logging">LOG IN</string>
     <string name="email">Email...</string>
     <string name="password">Password...</string>
     <string name="no_account_register_now">No Account ? Register Now</string>
     <string name="login">Login</string>
-    <string name="registering">REGISTERING</string>
+    <string name="registering">REGISTER</string>
     <string name="emailRegister">Email...</string>
     <string name="nickname">Nickname...</string>
     <string name="passwordRegister">Password...</string>
