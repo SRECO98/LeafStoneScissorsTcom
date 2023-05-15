@@ -116,10 +116,10 @@ class RematchMethods {
         }
     }
 
-    private fun stopListeningToFirebase(){
+    /*private fun stopListeningToFirebase(){
         registerListener.remove()
     }
-
+*/
     private var rematchListener: RematchListener? = null
 
     interface RematchListener {
