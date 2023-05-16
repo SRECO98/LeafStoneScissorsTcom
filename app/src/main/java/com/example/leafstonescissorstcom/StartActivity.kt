@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.view.isVisible
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -15,6 +16,8 @@ class StartActivity : AppCompatActivity() {
 
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private var roomData = hashMapOf("player1" to "value", "player2" to "Value2", "status" to "default")
+    private var roomPlayerData = hashMapOf("player1" to "value", "player2" to "value", "player3" to "value", "player4" to "value",
+        "player5" to "value", "player6" to "value", "player7" to "value", "player8" to "value", "current" to "1", "status" to "open")
     private lateinit var textViewWaiting: TextView
     private lateinit var textViewTokens: TextView
     var playerEmail = ""
@@ -25,7 +28,8 @@ class StartActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_start)
 
-        val buttonStartGame = findViewById<AppCompatButton>(R.id.buttonStartGame)
+        val buttonStartGame = findViewById<AppCompatButton>(R.id.buttonStart1v1)
+        val buttonStartGameGroupComp = findViewById<AppCompatButton>(R.id.buttonStartGroupComp)
         textViewWaiting = findViewById(R.id.textViewWaitPlayer)
         textViewTokens = findViewById(R.id.textViewTokens)
         val textViewWelcome = findViewById<TextView>(R.id.textViewWelcomePlayer)
@@ -48,9 +52,12 @@ class StartActivity : AppCompatActivity() {
             buttonStartGame.setBackgroundColor(Color.argb(255, 169, 169, 169))
             textViewWaiting.isVisible = true
         }
+
+        buttonCompGame(playerName, buttonStartGameGroupComp)
     }
 
-    private fun matchmake(playerName: String) {
+
+    private fun matchmake(playerName: String) { // promjeniti da se prima refereca!
         val roomsRef = db.collection("rooms")
         val query = roomsRef.whereEqualTo("status", "open").limit(1)
         query.get()
@@ -185,4 +192,84 @@ class StartActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+
+    private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton){
+        buttonStartGameGroupComp.setOnClickListener {
+            val roomGroupComp = db.collection("rooms")
+            val query = roomGroupComp.whereEqualTo("status", "open").get()
+                .addOnSuccessListener {documentListener ->
+                    if(documentListener.isEmpty){
+                        var roomId: String = ""
+                        roomGroupComp.add(roomPlayerData)
+                            .addOnSuccessListener { documentReference ->
+                                roomId = documentReference.id
+                                Log.d("TAG", "Room created with ID: ${documentReference.id}")
+                            }
+                            .addOnFailureListener { exception ->
+                                Log.e("TAG", "Error creating room: ", exception)
+                            }
+                        listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomId)) //listening to value status to know when to start a game.
+                    }else{
+                        val room = documentListener.first()
+                        val roomId = room.id
+
+                        listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomId)) //listening to value status to know when to start a game.
+
+                        val roomRef = roomGroupComp.document(roomId)
+                        Log.i("TAG", "Id is: $roomId")
+                        roomRef.get().addOnCompleteListener{ task ->
+                            if (task.isSuccessful) {
+                                Log.i("TAG", "Task is succesful!")
+                                val documentSnapshot = task.result
+                                if (documentSnapshot != null && documentSnapshot.exists()) {
+                                    Log.i("TAG", "DocumentSnapshot exist and its not null")
+                                    val current = documentSnapshot.get("current")
+                                    Log.i("TAG", "Current is: $current")
+                                    if (current != null) {
+                                        // Use the current value
+                                        if(current == "8"){
+                                            val game: String = current as String
+                                            val newValueGame = (game.toInt() + 1).toString()
+                                            val newPlayerString = "player$game"
+                                            roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName, "status", "close")
+                                            //START GAME (put some value to true in firebase and start activity on all phones)
+                                        }else{
+                                            val game: String = current as String
+                                            val newValueGame = (game.toInt() + 1).toString()
+                                            val newPlayerString = "player$game"
+                                            roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName)
+                                        }
+                                    } else {
+                                        // Handle the case when the "current" parameter is not found
+                                        println("The current player is not available")
+                                    }
+                                } else {
+                                    // Handle the case when the document doesn't exist
+                                    println("The document doesn't exist")
+                                }
+                            } else {
+                                // Handle any errors that occurred during the operation
+                                val exception = task.exception
+                                println("Error getting document: ${exception?.message}")
+                            }
+                        }
+                    }
+                }
+        }
+    }
+
+    private lateinit var register2: ListenerRegistration
+    private fun listeningToStatusCompGame(roomsRef: DocumentReference, ){
+        register2 = roomsRef.addSnapshotListener { value, _ -> //live follow data change in firebase
+            val statusOfRoom = value?.getString("status")!!
+            /*player2NameFromFB = value.getString("player2")!!
+            player2EmailFromFB = value.getString("player2Email")!!
+            player2TokensFromFB = value.getString("player2Tokens")!!*/
+            if (statusOfRoom == "close") {
+                //start activity (but first find how to pair players in games 1v1)
+            }
+        }
+    }
+
+
 }
