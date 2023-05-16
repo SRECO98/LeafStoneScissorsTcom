@@ -8,11 +8,15 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.view.isVisible
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
 class StartActivity : AppCompatActivity() {
+
+    private val NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = "8"
+    private var playerFirstOrSecond = ""
 
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private var roomData = hashMapOf("player1" to "value", "player2" to "Value2", "status" to "default")
@@ -22,6 +26,7 @@ class StartActivity : AppCompatActivity() {
     private lateinit var textViewTokens: TextView
     var playerEmail = ""
     var playerTokens = ""
+    var playerName = ""
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +38,7 @@ class StartActivity : AppCompatActivity() {
         textViewWaiting = findViewById(R.id.textViewWaitPlayer)
         textViewTokens = findViewById(R.id.textViewTokens)
         val textViewWelcome = findViewById<TextView>(R.id.textViewWelcomePlayer)
-        val playerName = intent.extras?.getString("name") ?: ""
+        playerName = intent.extras?.getString("name") ?: ""
         playerEmail = intent.extras?.getString("email") ?: ""
         playerTokens = intent.extras?.getString("tokens") ?: ""
         Log.i("TAG", " $playerTokens check tokens player one" )
@@ -47,7 +52,7 @@ class StartActivity : AppCompatActivity() {
         textViewTokens.text = playerTokens
 
         buttonStartGame.setOnClickListener {
-            matchmake(playerName)
+            matchmake(playerName, db.collection("rooms"))
             buttonStartGame.isEnabled = false
             buttonStartGame.setBackgroundColor(Color.argb(255, 169, 169, 169))
             textViewWaiting.isVisible = true
@@ -56,9 +61,7 @@ class StartActivity : AppCompatActivity() {
         buttonCompGame(playerName, buttonStartGameGroupComp)
     }
 
-
-    private fun matchmake(playerName: String) { // promjeniti da se prima refereca!
-        val roomsRef = db.collection("rooms")
+    private fun matchmake(playerName: String, roomsRef: CollectionReference) { // promjeniti da se prima refereca!
         val query = roomsRef.whereEqualTo("status", "open").limit(1)
         query.get()
             .addOnSuccessListener { documents ->
@@ -195,7 +198,7 @@ class StartActivity : AppCompatActivity() {
 
     private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton){
         buttonStartGameGroupComp.setOnClickListener {
-            val roomGroupComp = db.collection("rooms")
+            val roomGroupComp = db.collection("groupRooms")
             val query = roomGroupComp.whereEqualTo("status", "open").get()
                 .addOnSuccessListener {documentListener ->
                     if(documentListener.isEmpty){
@@ -203,12 +206,14 @@ class StartActivity : AppCompatActivity() {
                         roomGroupComp.add(roomPlayerData)
                             .addOnSuccessListener { documentReference ->
                                 roomId = documentReference.id
+                                playerFirstOrSecond = "first"
                                 Log.d("TAG", "Room created with ID: ${documentReference.id}")
+                                roomGroupComp.document(roomId).update("player1", playerName)
+                                listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomId)) //listening to value status to know when to start a game.
                             }
                             .addOnFailureListener { exception ->
                                 Log.e("TAG", "Error creating room: ", exception)
                             }
-                        listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomId)) //listening to value status to know when to start a game.
                     }else{
                         val room = documentListener.first()
                         val roomId = room.id
@@ -227,8 +232,13 @@ class StartActivity : AppCompatActivity() {
                                     Log.i("TAG", "Current is: $current")
                                     if (current != null) {
                                         // Use the current value
-                                        if(current == "8"){
+                                        if(current == NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP){
                                             val game: String = current as String
+                                            if(game.toInt() % 2 == 0){ //setting player place for game 1v1
+                                                playerFirstOrSecond = "second"
+                                            }else{
+                                                playerFirstOrSecond = "first"
+                                            }
                                             val newValueGame = (game.toInt() + 1).toString()
                                             val newPlayerString = "player$game"
                                             roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName, "status", "close")
@@ -236,7 +246,7 @@ class StartActivity : AppCompatActivity() {
                                         }else{
                                             val game: String = current as String
                                             val newValueGame = (game.toInt() + 1).toString()
-                                            val newPlayerString = "player$game"
+                                            val newPlayerString = "player${ ( game.toInt() + 1 )}"
                                             roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName)
                                         }
                                     } else {
@@ -259,7 +269,7 @@ class StartActivity : AppCompatActivity() {
     }
 
     private lateinit var register2: ListenerRegistration
-    private fun listeningToStatusCompGame(roomsRef: DocumentReference, ){
+    private fun listeningToStatusCompGame(roomsRef: DocumentReference){
         register2 = roomsRef.addSnapshotListener { value, _ -> //live follow data change in firebase
             val statusOfRoom = value?.getString("status")!!
             /*player2NameFromFB = value.getString("player2")!!
@@ -267,6 +277,12 @@ class StartActivity : AppCompatActivity() {
             player2TokensFromFB = value.getString("player2Tokens")!!*/
             if (statusOfRoom == "close") {
                 //start activity (but first find how to pair players in games 1v1)
+                if(playerFirstOrSecond == "first"){
+                    createRoom(playerName = playerName) //game not starting.
+                    //newAcitvity(playerName, player2NameFromFB, player2EmailFromFB, playerEmail, roomId, player, playerTokens, player2TokensFromFB) need to call this somehow.
+                }else if(playerFirstOrSecond == "second"){
+                    matchmake(playerName = playerName, roomsRef = db.collection("groupRooms"))
+                }
             }
         }
     }
