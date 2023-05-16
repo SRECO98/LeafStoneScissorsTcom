@@ -208,7 +208,7 @@ class StartActivity : AppCompatActivity() {
                                 roomId = documentReference.id
                                 playerFirstOrSecond = "first"
                                 Log.d("TAG", "Room created with ID: ${documentReference.id}")
-                                roomGroupComp.document(roomId).update("player1", playerName)
+                                roomGroupComp.document(roomId).update("player1", playerName, "current", "2")
                                 listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomId)) //listening to value status to know when to start a game.
                             }
                             .addOnFailureListener { exception ->
@@ -242,11 +242,11 @@ class StartActivity : AppCompatActivity() {
                                             val newValueGame = (game.toInt() + 1).toString()
                                             val newPlayerString = "player$game"
                                             roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName, "status", "close")
-                                            //START GAME (put some value to true in firebase and start activity on all phones)
                                         }else{
                                             val game: String = current as String
                                             val newValueGame = (game.toInt() + 1).toString()
-                                            val newPlayerString = "player${ ( game.toInt() + 1 )}"
+                                            val newPlayerString = "player${ (game.toInt())}"
+
                                             roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName)
                                         }
                                     } else {
