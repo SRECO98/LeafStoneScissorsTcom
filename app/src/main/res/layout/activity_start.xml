@@ -86,4 +86,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/buttonStart1v1" />
 
+    <TextView
+        android:id="@+id/textViewConnecting"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="48dp"
+        android:layout_marginTop="18dp"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:text="@string/connecting"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonStartGroupComp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
