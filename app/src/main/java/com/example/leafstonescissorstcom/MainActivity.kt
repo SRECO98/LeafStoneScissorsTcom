@@ -234,7 +234,11 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                     stopFirstRound = true
                     timer.start()
                 }else{
-                    dialogGameOver(player)
+                    if(kindOfGame == "solo")
+                        dialogGameOver(player)
+                    else if(kindOfGame == "group")
+                        Log.i("error", "delete this when you make down fun.")
+                        //dialogGameOver() Make new dialog for CompGroupGame
                 }
                 if(kindOfGame == "solo"){
                     firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsChooseRef)
