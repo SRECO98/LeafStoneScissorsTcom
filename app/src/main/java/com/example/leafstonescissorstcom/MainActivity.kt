@@ -24,8 +24,10 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, FirebaseMethods.ChangeColorListener {
     //crystaldisk for checking quality of disk on server.
     private val NUMBER_OF_ROUNDS: Int = 5
+    private val TOKEN_NUMBER_GET_OR_LOSE = 50
 
     //2x se poziva saveChooice ako stisnemo pick
+    //to fast covering choice of another player (blue and red) make it a little longer, when same choice make it half red/half blue somehow
     private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private lateinit var roomsChooseRef: DocumentReference
@@ -63,8 +65,6 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private var counterRounds: Int = 0
     var buttonChoose2 = "0"
     private lateinit var firebaseMethods: FirebaseMethods
-
-    //to fast covering choice of another player (blue and red) make it a little longer, when same choice make it half red/half blue somehow
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -239,6 +239,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                     else if(kindOfGame == "group")
                         Log.i("error", "delete this when you make down fun.")
                         //dialogGameOver() Make new dialog for CompGroupGame
+                        //Also need to handle saving data when user doesnt press lock.
                 }
                 if(kindOfGame == "solo"){
                     firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsChooseRef)
@@ -246,7 +247,6 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                     firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsRefCompGroup)
                 }
 
-                //startDelay(player, roomId)
             }
         }
     }
@@ -273,14 +273,14 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
 
         //calculating values for jumping dialog when game is over between two players
         if(player == 1){
-            if(currentValuePlayerOne == 5){
+            if(currentValuePlayerOne == NUMBER_OF_ROUNDS){
                 textViewWinOrLose.text = "Victory"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer1.text.toString())
                 textViewPlayerVSPlayer1.text = (scores + 1).toString()
                 val totalWins2: Int = Integer.parseInt(totalWins) + 1  //getting value from base before game plus 1
                 textViewTotalWinsScore.text = totalWins2.toString() //putting taht value on screen
                 textViewTotalLosesScore.text = totalLoses // same value we get from base passing to screen because it didnt change
-                player1TokensAfterGame = player1Tokens!!.toInt() + 50
+                player1TokensAfterGame = player1Tokens!!.toInt() + TOKEN_NUMBER_GET_OR_LOSE
                 textViewTokens.text = player1TokensAfterGame.toString()
                 updatingTotalWinsTotalLosesTokensInFB(player1Email!!, totalWins2.toString(), totalLoses, player1TokensAfterGame.toString()) //adding new values to base
             }else{
@@ -290,19 +290,19 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 val totalLoses2: Int = Integer.parseInt(totalLoses) + 1
                 textViewTotalWinsScore.text = totalWins
                 textViewTotalLosesScore.text = totalLoses2.toString()
-                player1TokensAfterGame = player1Tokens!!.toInt() - 50
+                player1TokensAfterGame = player1Tokens!!.toInt() - TOKEN_NUMBER_GET_OR_LOSE
                 textViewTokens.text = player1TokensAfterGame.toString()
                 updatingTotalWinsTotalLosesTokensInFB(player1Email!!, totalWins, totalLoses2.toString(), player1TokensAfterGame.toString())
             }
         }else{ //player == 2
-            if(currentValuePlayerTwo == 5){
+            if(currentValuePlayerTwo == NUMBER_OF_ROUNDS){
                 textViewWinOrLose.text = "Victory"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer2.text.toString())
                 textViewPlayerVSPlayer2.text = (scores + 1).toString()
                 val totalWins2: Int = Integer.parseInt(totalWins) + 1
                 textViewTotalWinsScore.text = totalWins2.toString()
                 textViewTotalLosesScore.text = totalLoses
-                player2TokensAfterGame = player2Tokens!!.toInt() + 50
+                player2TokensAfterGame = player2Tokens!!.toInt() + TOKEN_NUMBER_GET_OR_LOSE
                 textViewTokens.text = player2TokensAfterGame.toString()
                 updatingTotalWinsTotalLosesTokensInFB(player2Email!!, totalWins2.toString(), totalLoses, player2TokensAfterGame.toString())
             }else{
@@ -312,7 +312,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 val totalLoses2: Int = Integer.parseInt(textViewTotalLosesScore.text.toString()) + 1
                 textViewTotalWinsScore.text = totalWins
                 textViewTotalLosesScore.text = totalLoses2.toString()
-                player2TokensAfterGame = player2Tokens!!.toInt() - 50
+                player2TokensAfterGame = player2Tokens!!.toInt() - TOKEN_NUMBER_GET_OR_LOSE
                 textViewTokens.text = player2TokensAfterGame.toString()
                 updatingTotalWinsTotalLosesTokensInFB(player2Email!!, totalWins, totalLoses2.toString(), player2TokensAfterGame.toString())
             }

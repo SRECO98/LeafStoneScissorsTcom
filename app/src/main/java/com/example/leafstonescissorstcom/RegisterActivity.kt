@@ -21,6 +21,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var docRef: DocumentReference
     private lateinit var nickname: EditText
     private lateinit var email: EditText
+    private val TOKENS_PER_REGISTRATION: String = "1000"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,7 +89,7 @@ class RegisterActivity : AppCompatActivity() {
         name.put("name", nickName)
         name.put("totalWins", "0")
         name.put("totalLoses", "0")
-        name.put("tokens", "1000")
+        name.put("tokens", TOKENS_PER_REGISTRATION)
 
         docRef.set(name)
             .addOnSuccessListener {
