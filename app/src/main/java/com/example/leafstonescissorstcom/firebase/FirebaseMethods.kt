@@ -1,6 +1,8 @@
 package com.example.leafstonescissorstcom.firebase
 
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import com.example.leafstonescissorstcom.MainActivity
@@ -15,8 +17,7 @@ class FirebaseMethods {
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private lateinit var roomsChooseRef: DocumentReference
 
-    fun saveChoose(player: Int, playerChoose: String, roomId: String){
-        roomsChooseRef = db.collection("rooms").document(roomId)
+    fun saveChoose(player: Int, playerChoose: String, roomsChooseRef: DocumentReference){
         var i = 0
         i += 1
         Log.i("Choose", "saveChoose function called $i")
@@ -66,9 +67,8 @@ class FirebaseMethods {
         }
     }
 
-    fun loadChoose(player: Int, roomId: String){
-        val mainActivity = MainActivity()
-        roomsChooseRef = db.collection("rooms").document(roomId)
+    fun loadChoose(player: Int, roomsChooseRef: DocumentReference){
+
         var playerOneChoose: String
         var playerTwoChoose: String
         roomsChooseRef.get()
@@ -87,14 +87,28 @@ class FirebaseMethods {
                 Log.i("TAG", "Players choose before calculating: p1: $playerOneChoose ")
                 Log.i("TAG", "Players choose before calculating: p2: $playerTwoChoose ")
                 calculateWinner(playerOneChoose.toInt(), playerTwoChoose.toInt(), player)
-                //reset on zero in case someone didnt lock anything so it doesnt take last results.
-                mainActivity.playerChoose = "0"
-                resetChooseToZero(player = 1, roomId)
-                resetChooseToZero(player = 2, roomId)
+                startDelay(player = player, roomsChooseRef = roomsChooseRef)
             }
             .addOnFailureListener {
                 Log.i("TAG", "Getting choose data failed")
             }
+    }
+
+    private val delayMillis: Long = 2000 // 5 seconds
+    private fun startDelay(player: Int, roomsChooseRef: DocumentReference) { //delegating for 2 seconds because there is a little delay in getting data from firebase.
+        Handler(Looper.getMainLooper()).postDelayed({
+            val mainActivity = MainActivity()
+            //reset on zero in case someone didnt lock anything so it doesnt take last results.
+            mainActivity.playerChoose = "0"
+
+            if(player == 1){
+                resetChooseToZero(player = 1, roomsChooseRef = roomsChooseRef)
+            }else if(player == 2){
+                resetChooseToZero(player = 2, roomsChooseRef = roomsChooseRef)
+            }
+            // This code will run after the specified delay
+            // Perform your task here
+        }, delayMillis)
     }
 
     private fun calculateWinner(playerOneChoose: Int, playerTwoChoose: Int, player: Int){
@@ -293,11 +307,9 @@ class FirebaseMethods {
         firebaseListener?.updateScore(scorePlayerOne, scorePlayerTwo)
     }
 
-    private fun resetChooseToZero(player: Int, roomId: String){
-        roomsChooseRef = db.collection("rooms").document(roomId)
+    private fun resetChooseToZero(player: Int, roomsChooseRef: DocumentReference){
         val playerChooseZero = "0"
         if(player == 1){
-            Log.i("TAG12", "choosesPlayer1.toString()")
             try{
                 roomsChooseRef.update("choosePlayer1", playerChooseZero)
                     .addOnSuccessListener {
@@ -332,8 +344,7 @@ class FirebaseMethods {
         "choosesArrayPlayer2" to "empty",
     )
 
-    fun createNewHasMapStore(roomId: String) { //setting document in collection for score of players
-        roomsChooseRef = db.collection("rooms").document(roomId)
+    fun createNewHasMapStore(roomsChooseRef: DocumentReference) { //setting document in collection for score of players
         roomsChooseRef.set(chooseRoom as Map<String, Any>, SetOptions.merge())
             .addOnSuccessListener {
                 Log.i("Choose", "Successfully added picture choice")

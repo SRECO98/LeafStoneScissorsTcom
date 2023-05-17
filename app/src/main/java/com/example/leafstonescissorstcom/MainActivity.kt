@@ -18,7 +18,6 @@ import com.example.leafstonescissorstcom.firebase.FirebaseMethods
 import com.example.leafstonescissorstcom.rematch.RematchMethods
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -38,6 +37,8 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private lateinit var buttonSccissors: AppCompatButton
     private lateinit var buttonGo: AppCompatButton
     private lateinit var roomId: String
+    private lateinit var roomsRefCompGroup: DocumentReference
+    private var kindOfGame: String? = ""
     private var player1Name: String? = ""
     private var player2Name: String? = ""
     private var player1Email: String? = ""
@@ -81,6 +82,11 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         val textViewPlayerOneName: TextView = findViewById(R.id.playerOneName)
         val textViewPlayerTwoName: TextView = findViewById(R.id.playerTwoName)
         val textViewTimer: TextView = findViewById(R.id.textViewTimer)
+
+        val documentPath = intent.getStringExtra("roomsRef")!!
+        roomsRefCompGroup = FirebaseFirestore.getInstance().document(documentPath)
+        kindOfGame = intent.getStringExtra("kindOfGame")
+
         player1Name = intent.getStringExtra("player1Name")
         player2Name = intent.getStringExtra("player2Name")
         player1Email = intent.getStringExtra("player1Email")
@@ -94,7 +100,11 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         roomsChooseRef = db.collection("rooms").document(roomId)
         Log.i("TAG4", "VALUE ON NEXT ACTIVITY IS: $player1Name")
         Log.i("TAG4", "VALUE ON NEXT ACTIVITY IS: $player2Name")
-        firebaseMethods.createNewHasMapStore(roomId = roomId)
+        if(kindOfGame == "solo"){
+            firebaseMethods.createNewHasMapStore(roomsChooseRef)
+        }else if(kindOfGame == "group"){
+            firebaseMethods.createNewHasMapStore(roomsRefCompGroup)
+        }
         if(player == 1)
             gettingTotalWinsAndTotalLosesFromFirebase(player1Email!!)
         else
@@ -131,7 +141,10 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 GlobalScope.launch {
                     try {
                         playerChoose = buttonChoose2
-                        firebaseMethods.saveChoose(player, playerChoose, roomId)
+                        if(kindOfGame == "solo")
+                            firebaseMethods.saveChoose(player, playerChoose, roomsChooseRef)
+                        else
+                            firebaseMethods.saveChoose(player, playerChoose, roomsRefCompGroup)
                     }catch (e: Exception){
                         Log.i("TAG", "exception global scope coroutine: $e")
                     }
@@ -193,7 +206,10 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 if(!userPressedButtonLock){
                     GlobalScope.launch {
                         try {
-                            firebaseMethods.saveChoose(player, playerChoose, roomId)
+                            if(kindOfGame == "solo")
+                                firebaseMethods.saveChoose(player, playerChoose, roomsChooseRef) //if user didnt press lock, we enter data at the end of round.
+                            else
+                                firebaseMethods.saveChoose(player, playerChoose, roomsRefCompGroup)
                         }catch (e: Exception){
                             Log.i("TAG", "exception global scope coroutine: $e")
                         }
@@ -220,7 +236,13 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 }else{
                     dialogGameOver(player)
                 }
-                firebaseMethods.loadChoose(player, roomId)
+                if(kindOfGame == "solo"){
+                    firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsChooseRef)
+                }else{
+                    firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsRefCompGroup)
+                }
+
+                //startDelay(player, roomId)
             }
         }
     }
@@ -390,6 +412,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     /***********************************************************************************************************/
 
     /*FIREBASE LOGIC AND CALCULATION OF POINTS*/
+    //Fun for changing color of fields after every round.
     override fun buttonChangeColor(stoneR: Int, stoneG: Int, stoneB: Int, leafR: Int, leafG: Int, leafB: Int, scissorsR: Int, scissorsG: Int, scissorsB: Int) {
         buttonStone.setBackgroundColor(Color.argb(58, stoneR, stoneG, stoneB))
         buttonLeaf.setBackgroundColor(Color.argb(58, leafR, leafG, leafB))
