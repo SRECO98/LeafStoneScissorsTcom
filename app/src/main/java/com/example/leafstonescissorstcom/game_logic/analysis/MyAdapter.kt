@@ -1,9 +1,10 @@
-package com.example.leafstonescissorstcom
+package com.example.leafstonescissorstcom.game_logic.analysis
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.leafstonescissorstcom.R
 import com.google.android.material.imageview.ShapeableImageView
 
 class MyAdapter(private val roundList: ArrayList<Round>):

@@ -1,4 +1,4 @@
-package com.example.leafstonescissorstcom
+package com.example.leafstonescissorstcom.game_logic
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -14,9 +14,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
-import com.example.leafstonescissorstcom.firebase.FirebaseMethods
-import com.example.leafstonescissorstcom.firebase.TotalWinLose
-import com.example.leafstonescissorstcom.rematch.RematchMethods
+import com.example.leafstonescissorstcom.R
+import com.example.leafstonescissorstcom.game_logic.analysis.AnalyzedGameActivity
+import com.example.leafstonescissorstcom.game_logic.firebase.FirebaseMethods
+import com.example.leafstonescissorstcom.game_logic.firebase.TotalWinLose
+import com.example.leafstonescissorstcom.game_logic.matching_users.StartActivity
+import com.example.leafstonescissorstcom.game_logic.rematch.RematchMethods
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.GlobalScope
@@ -423,7 +426,6 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     override fun updateScore(scorePlayerOne: String, scorePlayerTwo: String) {
 
         Log.i("TAG UPDATE","Scores: $scorePlayerOne and $scorePlayerTwo")
-
         when (scorePlayerOne) {
             "victory" -> {
                 currentValuePlayerOne = Integer.parseInt(textViewPlayerOneScore.text.toString())

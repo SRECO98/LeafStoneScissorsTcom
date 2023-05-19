@@ -1,4 +1,4 @@
-package com.example.leafstonescissorstcom
+package com.example.leafstonescissorstcom.user_info
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -8,6 +8,8 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
+import com.example.leafstonescissorstcom.R
+import com.example.leafstonescissorstcom.game_logic.matching_users.StartActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.DocumentReference

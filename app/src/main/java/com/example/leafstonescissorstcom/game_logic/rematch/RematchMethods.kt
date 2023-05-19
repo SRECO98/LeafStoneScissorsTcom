@@ -1,4 +1,4 @@
-package com.example.leafstonescissorstcom.rematch
+package com.example.leafstonescissorstcom.game_logic.rematch
 
 import android.content.Context
 import android.graphics.Color
@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatButton
-import com.example.leafstonescissorstcom.MainActivity
 import com.example.leafstonescissorstcom.R
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore

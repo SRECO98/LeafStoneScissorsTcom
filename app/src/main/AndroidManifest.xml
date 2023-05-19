@@ -12,15 +12,15 @@
         android:theme="@style/Theme.LeafStoneScissorsTcom"
         tools:targetApi="31">
         <activity
-            android:name=".AnalyzedGameActivity"
+            android:name=".game_logic.analysis.AnalyzedGameActivity"
             android:exported="false" />
         <activity
-            android:name=".StartActivity"
+            android:name=".game_logic.matching_users.StartActivity"
             android:configChanges="orientation"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".user_info.LoginActivity"
             android:configChanges="orientation"
             android:exported="true"
             android:screenOrientation="portrait">
@@ -31,12 +31,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".RegisterActivity"
+            android:name=".user_info.RegisterActivity"
             android:configChanges="orientation"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".MainActivity"
+            android:name=".game_logic.MainActivity"
             android:configChanges="orientation"
             android:exported="false"
             android:screenOrientation="portrait" />

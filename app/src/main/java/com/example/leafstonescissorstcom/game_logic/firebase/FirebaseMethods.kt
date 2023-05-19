@@ -1,13 +1,10 @@
-package com.example.leafstonescissorstcom.firebase
+package com.example.leafstonescissorstcom.game_logic.firebase
 
-import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.widget.Toast
-import com.example.leafstonescissorstcom.MainActivity
+import com.example.leafstonescissorstcom.game_logic.MainActivity
 import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
 class FirebaseMethods {

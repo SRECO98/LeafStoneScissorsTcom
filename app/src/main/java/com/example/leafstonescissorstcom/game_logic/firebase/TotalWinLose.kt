@@ -1,4 +1,4 @@
-package com.example.leafstonescissorstcom.firebase
+package com.example.leafstonescissorstcom.game_logic.firebase
 
 import android.util.Log
 import com.google.firebase.firestore.DocumentReference
