@@ -5,15 +5,15 @@
     <string name="leaf">Leaf</string>
     <string name="sccissors">Sccissors</string>
     <string name="logging">LOG IN</string>
-    <string name="email">Email...</string>
-    <string name="password">Password...</string>
+    <string name="email">Email…</string>
+    <string name="password">Password…</string>
     <string name="no_account_register_now">No Account ? Register Now</string>
     <string name="login">Login</string>
     <string name="registering">REGISTER</string>
-    <string name="emailRegister">Email...</string>
-    <string name="nickname">Nickname...</string>
-    <string name="passwordRegister">Password...</string>
-    <string name="repeat_password">Repeat password...</string>
+    <string name="emailRegister">Email…</string>
+    <string name="nickname">Nickname…</string>
+    <string name="passwordRegister">Password…</string>
+    <string name="repeat_password">Repeat password…</string>
     <string name="register">Register</string>
     <string name="already_have_an_account_login_now">Already have an account? Login now</string>
     <string name="start_game">Start game</string>
@@ -26,7 +26,7 @@
     <string name="go">GO</string>
     <string name="___8">8</string>
     <string name="pick">PICK</string>
-    <string name="waiting_for_second_player">Waiting for second player...</string>
+    <string name="waiting_for_second_player">Waiting for second player…</string>
     <string name="close">Close</string>
     <string name="player_one">Player one</string>
     <string name="player_two">Player two</string>
@@ -38,5 +38,5 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="tokens">Tokens</string>
-    <string name="connecting">Connecting ...</string>
+    <string name="connecting">Waiting for other players…</string>
 </resources>

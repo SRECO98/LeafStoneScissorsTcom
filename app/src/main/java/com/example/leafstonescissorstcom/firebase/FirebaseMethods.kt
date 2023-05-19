@@ -14,47 +14,26 @@ class FirebaseMethods {
 
     private val choosesPlayer1 = arrayListOf<Int>()
     private val choosesPlayer2 = arrayListOf<Int>()
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-    private lateinit var roomsChooseRef: DocumentReference
 
     fun saveChoose(player: Int, playerChoose: String, roomsChooseRef: DocumentReference){
-        var i = 0
-        i += 1
-        Log.i("Choose", "saveChoose function called $i")
         //updating picture of player one in room
         if(player == 1){
             choosesPlayer1.add(playerChoose.toInt())
-            Log.i("TAG12", "choosesPlayer1.toString()")
             try{
-                roomsChooseRef.update("choosePlayer1", playerChoose)
+                roomsChooseRef.update("choosePlayer1", playerChoose, "choosesArrayPlayer1", choosesPlayer1)
                     .addOnSuccessListener {
-                        Log.i("Choose", "Successfully added picture choice for player 2")
+                        Log.i("Choose", "Successfully added picture choice for player 1")
                     }
                     .addOnFailureListener {
-                        Log.i("Choose", "Failed while adding picture choice for player 2: $it")
-                    }
-                roomsChooseRef.update("choosesArrayPlayer1", choosesPlayer1)
-                    .addOnSuccessListener {
-                        Log.i("Choose", "Successfully added picture choice for player 2")
-                    }
-                    .addOnFailureListener {
-                        Log.i("Choose", "Failed while adding picture choice for player 2: $it")
+                        Log.i("Choose", "Failed while adding picture choice for player 1: $it")
                     }
             }catch (e: Exception){
                 Log.i("TAG", "EXCEPTION IS: $e")
             }
-            Log.i("TAG", "Checking update in saveChoose")
         }else if(player == 2){ //updating picture of player two in room
             choosesPlayer2.add(playerChoose.toInt())
             try{
-                roomsChooseRef.update("choosePlayer2", playerChoose)
-                    .addOnSuccessListener {
-                        Log.i("Choose", "Successfully added picture choice for player 2")
-                    }
-                    .addOnFailureListener {
-                        Log.i("Choose", "Failed while adding picture choice for player 2: $it")
-                    }
-                roomsChooseRef.update("choosesArrayPlayer2", choosesPlayer2)
+                roomsChooseRef.update("choosePlayer2", playerChoose, "choosesArrayPlayer2", choosesPlayer2)
                     .addOnSuccessListener {
                         Log.i("Choose", "Successfully added picture choice for player 2")
                     }
@@ -65,6 +44,7 @@ class FirebaseMethods {
                 Log.i("TAG", "EXCEPTION IS: $e")
             }
         }
+        Log.i("saveChoose", "Function is over.")
     }
 
     fun loadChoose(player: Int, roomsChooseRef: DocumentReference){

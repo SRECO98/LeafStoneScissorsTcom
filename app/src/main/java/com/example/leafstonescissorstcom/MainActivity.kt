@@ -138,7 +138,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
             if(buttonChoose2 == "0"){ //if one of players didnt chose a picture.
                 Toast.makeText(this, "Please, choose one of the pictures!", Toast.LENGTH_SHORT).show()
             }else{
-                GlobalScope.launch {
+                GlobalScope.launch () {
                     try {
                         playerChoose = buttonChoose2
                         if(kindOfGame == "solo")
@@ -173,38 +173,61 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     var stopFirstRound: Boolean = false
     var userPressedButtonLock = false // if user didnt press button lock we must enter auto zero to firebase
     private fun timerFun (textViewTimer: TextView, player: Int){
-        timer = object : CountDownTimer(10000, 1000) {
+        timer = object : CountDownTimer(12000, 1000) {
             override fun onTick(remaining: Long) {
 
                 if(stopFirstRound){
-                    if(remaining in 7001..8100){
-                        textViewTimer.text = ""
-                        buttonGo.isEnabled = true //tur on buttons again cuz new timer will begin
-                        buttonStone.isEnabled = true
-                        buttonLeaf.isEnabled = true
-                        buttonSccissors.isEnabled = true
-                        buttonGo.setTextColor(Color.BLACK)
-                        buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
-                        playerChoose = "0"
+                    if(remaining in 8001..10100){
+                        if(doOnlyOnce2 == true){
+                            doOnlyOnce2 = false //we will put it on true after finishing onTick
+                            textViewTimer.text = ""
+                            buttonGo.isEnabled = true //tur on buttons again cuz new timer will begin
+                            buttonStone.isEnabled = true
+                            buttonLeaf.isEnabled = true
+                            buttonSccissors.isEnabled = true
+                            buttonGo.setTextColor(Color.BLACK)
+                            buttonGo.setBackgroundColor(Color.argb(255, 69, 194, 153))
+                            playerChoose = "0"
 
-                        buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
-                        buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
-                        buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                            buttonStone.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                            buttonLeaf.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                            buttonSccissors.setBackgroundColor(Color.argb(23, 198, 182, 54))
+                        }
                     }
                 }
-                if (remaining < 4000) {
+                if (remaining in 2001..5999) {
                     textViewTimer.setTextColor(Color.argb(255, 255, 0, 0))
                 }
-                textViewTimer.text = ((remaining / 1000).toString())
+                if(remaining > 2001){
+                    textViewTimer.text = (((remaining - 2000) / 1000).toString())
+                }else{
+                    if(doOnlyOnce == true){
+                        doOnlyOnce = false //we will put it on true after finishing onTick
+                        textViewTimer.text = ""
+                        if(kindOfGame == "solo"){
+                            firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsChooseRef)
+                        }else{
+                            firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsRefCompGroup)
+                        }
+                        buttonGo.isEnabled = false //turn off buttons because user checked his choice
+                        buttonStone.isEnabled = false
+                        buttonLeaf.isEnabled = false
+                        buttonSccissors.isEnabled = false
+                        buttonGo.setTextColor(Color.WHITE)
+                        buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
+                    }
+                }
             }
 
             override fun onFinish() {
+                doOnlyOnce = true //next round it will open if at the end of round once.
+                doOnlyOnce2 = true //next round it will open if at the end of round once.
                 buttonChoose2 = "0"
                 counterRounds += 1
                 textViewTimer.text = "9"
                 Log.i("tag", "User pressed button: $userPressedButtonLock")
-                if(!userPressedButtonLock){
-                    GlobalScope.launch {
+                if(!userPressedButtonLock){ //if user didnt press lock we have to add zero to firebase as score, but its not working so
+                    /*GlobalScope.launch {
                         try {
                             if(kindOfGame == "solo")
                                 firebaseMethods.saveChoose(player, playerChoose, roomsChooseRef) //if user didnt press lock, we enter data at the end of round.
@@ -213,13 +236,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                         }catch (e: Exception){
                             Log.i("TAG", "exception global scope coroutine: $e")
                         }
-                    }
-                    buttonGo.isEnabled = false //turn off buttons because user checked his choice
-                    buttonStone.isEnabled = false
-                    buttonLeaf.isEnabled = false
-                    buttonSccissors.isEnabled = false
-                    buttonGo.setTextColor(Color.WHITE)
-                    buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
+                    }*/
                 }else{
                     userPressedButtonLock = false
                 }
@@ -241,15 +258,12 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                         //dialogGameOver() Make new dialog for CompGroupGame
                         //Also need to handle saving data when user doesnt press lock.
                 }
-                if(kindOfGame == "solo"){
-                    firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsChooseRef)
-                }else{
-                    firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsRefCompGroup)
-                }
-
             }
         }
     }
+
+    var doOnlyOnce: Boolean = true
+    var doOnlyOnce2: Boolean = true
 
     private lateinit var builder: AlertDialog.Builder
     private lateinit var customView: View

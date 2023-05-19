@@ -17,7 +17,7 @@ import com.google.firebase.firestore.ListenerRegistration
 
 class StartActivity : AppCompatActivity() {
 
-    private val NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = "8"
+    private val NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = "2"
     private var playerFirstOrSecond = ""
 
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -30,7 +30,6 @@ class StartActivity : AppCompatActivity() {
     var playerEmail = ""
     var playerTokens = ""
     var playerName = ""
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +54,7 @@ class StartActivity : AppCompatActivity() {
         textViewWelcome.text = newString
         textViewTokens.text = playerTokens
 
+        //Button start 1v1 game:
         buttonStartGame.setOnClickListener {
             matchmake(playerName, db.collection("rooms"))
             buttonStartGame.isEnabled = false
@@ -62,6 +62,7 @@ class StartActivity : AppCompatActivity() {
             textViewWaiting.isVisible = true
         }
 
+        //Button start group game:
         buttonCompGame(playerName, buttonStartGameGroupComp)
     }
 
@@ -137,6 +138,10 @@ class StartActivity : AppCompatActivity() {
             )
             Log.i("TAG", "roomData: $roomData")
 
+            if(kindOfGame != "solo"){ //if game is solo 1v1 then skip removing register cause its not initialized.
+                Log.i("TAG", "delete register")
+                register2.remove()
+            }
             roomsRef.update(roomData as Map<String, Any>)
                 .addOnSuccessListener {
                     Log.d("TAG", "Joined room with ID: $roomId")
@@ -165,6 +170,7 @@ class StartActivity : AppCompatActivity() {
             var player2TokensFromFB: String
 
             register = roomsRef.addSnapshotListener { value, _ -> //live follow when second user came so it can open new activity together
+                Log.i("TAG", "Listening triggered1")
                 statusOfRoom = value?.getString("status")!!
                 player2NameFromFB = value.getString("player2")!!
                 player2EmailFromFB = value.getString("player2Email")!!
@@ -181,7 +187,9 @@ class StartActivity : AppCompatActivity() {
                             player1Email: String, roomId: String, player: Int, tokensPlayer1: String,
                             tokensPlayer2: String, kindOfGame: String, roomsRef: DocumentReference){
         register.remove()
+        Log.i("TAG", "delete register: ${kindOfGame}")
         if(kindOfGame != "solo"){ //if game is solo 1v1 then skip removing register cause its not initialized.
+            Log.i("TAG", "delete register")
             register2.remove()
         }
         Log.i("TAG", "Player emails 1: $player1Email")
@@ -204,9 +212,13 @@ class StartActivity : AppCompatActivity() {
         finish()
     }
 
+    /* LOGIC FOR SECOND BUTTON "START GROUP COMP" ******************************************************************************************************************************/
     var roomIdCompGroup: String = ""
     private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton){
         buttonStartGameGroupComp.setOnClickListener {
+            textViewConnecting.isVisible = true
+            buttonStartGameGroupComp.isEnabled = false
+            buttonStartGameGroupComp.setBackgroundColor(Color.argb(255, 169, 169, 169))
             val roomGroupComp = db.collection("groupRooms")
             val query = roomGroupComp.whereEqualTo("status", "open").get()
                 .addOnSuccessListener {documentListener ->
@@ -279,30 +291,29 @@ class StartActivity : AppCompatActivity() {
     }
 
     private lateinit var register2: ListenerRegistration
-    private val delayMillis: Long = 10000 // 5 seconds
+
     private fun listeningToStatusCompGame(roomsRef: DocumentReference, collection: CollectionReference){
         register2 = roomsRef.addSnapshotListener { value, _ -> //live follow data change in firebase
             val statusOfRoom = value?.getString("status")!!
-            /*player2NameFromFB = value.getString("player2")!!
-            player2EmailFromFB = value.getString("player2Email")!!
-            player2TokensFromFB = value.getString("player2Tokens")!!*/
+            Log.i("TAG", "Listening triggered2")
             if (statusOfRoom == "close") {
                 //start activity (but first find how to pair players in games 1v1)
-                Log.i("TAG", "playerFirstOrSecond is $playerFirstOrSecond")
                 if(playerFirstOrSecond == "first"){
                     matchmakeForCompGroup(playerName, roomsRef = collection.document(roomIdCompGroup).collection("games"), playerCheck = 1)
                     //createRoom(playerName = playerName, roomsRef = collection.document(roomIdCompGroup).collection("games")) //game not starting.
+                    textViewConnecting.text = "Connecting ..."
                     textViewConnecting.isVisible = true
                     //newAcitvity(playerName, player2NameFromFB, player2EmailFromFB, playerEmail, roomId, player, playerTokens, player2TokensFromFB) need to call this somehow.
                 }else if(playerFirstOrSecond == "second"){
+                    textViewConnecting.text = "Connecting ..."
                     textViewConnecting.isVisible = true
-                    startDelay(roomsRef = roomsRef, collection)
+                    startDelay(collection)
                 }
             }
         }
     }
-
-    private fun startDelay(roomsRef: DocumentReference, collection: CollectionReference) {
+    private val delayMillis: Long = 3000 // 3 seconds delay, we are waiting for firebase to make a rooms and it can start with a game.
+    private fun startDelay(collection: CollectionReference) {
         Handler(Looper.getMainLooper()).postDelayed({
             textViewConnecting.isVisible = false
             Log.i("TAG", "Id dokumentra: $roomIdCompGroup")
@@ -334,4 +345,6 @@ class StartActivity : AppCompatActivity() {
                 Log.e("TAG", "Error getting open rooms: ", exception)
             }
     }
+
+    /*A***********************************************************************************************************************************************************************************/
 }
