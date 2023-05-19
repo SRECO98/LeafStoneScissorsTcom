@@ -15,6 +15,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import com.example.leafstonescissorstcom.firebase.FirebaseMethods
+import com.example.leafstonescissorstcom.firebase.TotalWinLose
 import com.example.leafstonescissorstcom.rematch.RematchMethods
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -65,11 +66,15 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private var counterRounds: Int = 0
     var buttonChoose2 = "0"
     private lateinit var firebaseMethods: FirebaseMethods
+    private lateinit var firebaseTotalWinLose: TotalWinLose
+    private var totalWins: String = "0"
+    private var totalLoses: String = "0"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        firebaseTotalWinLose = TotalWinLose()
         firebaseMethods = FirebaseMethods()
         firebaseMethods.setChangeColorListener(this)
 
@@ -106,10 +111,17 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
             firebaseMethods.createNewHasMapStore(roomsRefCompGroup)
         }
         if(player == 1)
-            gettingTotalWinsAndTotalLosesFromFirebase(player1Email!!)
+            firebaseTotalWinLose.gettingTotalWinsAndTotalLosesFromFirebase(db.collection("nameOfUsers").document(player1Email!!),
+                onSuccess = {totalWins, totalloses ->  //sendng lambda fun like this cuz val cant be changed after sending as argument
+                    this.totalWins = totalWins
+                    this.totalLoses = totalloses
+                })
         else
-            gettingTotalWinsAndTotalLosesFromFirebase(player2Email!!)
-
+            firebaseTotalWinLose.gettingTotalWinsAndTotalLosesFromFirebase(db.collection("nameOfUsers").document(player2Email!!),
+                onSuccess = {totalWins, totalloses ->
+                    this.totalWins = totalWins
+                    this.totalLoses = totalloses
+                })
 
         textViewPlayerOneName.text = player1Name
         textViewPlayerTwoName.text = player2Name
@@ -296,7 +308,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 textViewTotalLosesScore.text = totalLoses // same value we get from base passing to screen because it didnt change
                 player1TokensAfterGame = player1Tokens!!.toInt() + TOKEN_NUMBER_GET_OR_LOSE
                 textViewTokens.text = player1TokensAfterGame.toString()
-                updatingTotalWinsTotalLosesTokensInFB(player1Email!!, totalWins2.toString(), totalLoses, player1TokensAfterGame.toString()) //adding new values to base
+                firebaseTotalWinLose.updatingTotalWinsTotalLosesTokensInFB(totalWins2.toString(), totalLoses, player1TokensAfterGame.toString(), db.collection("nameOfUsers").document(player1Email!!)) //adding new values to base
             }else{
                 textViewWinOrLose.text = "Defeat"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer2.text.toString())
@@ -306,7 +318,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 textViewTotalLosesScore.text = totalLoses2.toString()
                 player1TokensAfterGame = player1Tokens!!.toInt() - TOKEN_NUMBER_GET_OR_LOSE
                 textViewTokens.text = player1TokensAfterGame.toString()
-                updatingTotalWinsTotalLosesTokensInFB(player1Email!!, totalWins, totalLoses2.toString(), player1TokensAfterGame.toString())
+                firebaseTotalWinLose.updatingTotalWinsTotalLosesTokensInFB(totalWins, totalLoses2.toString(), player1TokensAfterGame.toString(), db.collection("nameOfUsers").document(player1Email!!))
             }
         }else{ //player == 2
             if(currentValuePlayerTwo == NUMBER_OF_ROUNDS){
@@ -318,7 +330,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 textViewTotalLosesScore.text = totalLoses
                 player2TokensAfterGame = player2Tokens!!.toInt() + TOKEN_NUMBER_GET_OR_LOSE
                 textViewTokens.text = player2TokensAfterGame.toString()
-                updatingTotalWinsTotalLosesTokensInFB(player2Email!!, totalWins2.toString(), totalLoses, player2TokensAfterGame.toString())
+                firebaseTotalWinLose.updatingTotalWinsTotalLosesTokensInFB(totalWins2.toString(), totalLoses, player2TokensAfterGame.toString(), db.collection("nameOfUsers").document(player2Email!!))
             }else{
                 textViewWinOrLose.text = "Defeat"
                 val scores: Int = Integer.parseInt(textViewPlayerVSPlayer1.text.toString())
@@ -328,7 +340,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 textViewTotalLosesScore.text = totalLoses2.toString()
                 player2TokensAfterGame = player2Tokens!!.toInt() - TOKEN_NUMBER_GET_OR_LOSE
                 textViewTokens.text = player2TokensAfterGame.toString()
-                updatingTotalWinsTotalLosesTokensInFB(player2Email!!, totalWins, totalLoses2.toString(), player2TokensAfterGame.toString())
+                firebaseTotalWinLose.updatingTotalWinsTotalLosesTokensInFB(totalWins, totalLoses2.toString(), player2TokensAfterGame.toString(), db.collection("nameOfUsers").document(player2Email!!))
             }
         }
 
@@ -373,36 +385,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         startActivity(intent)
     }
 
-    private fun updatingTotalWinsTotalLosesTokensInFB(email: String, totalWins: String, totalLoses: String, tokens: String) {
-        val docRef = db.collection("nameOfUsers").document(email)
-        try{
-            docRef.update("totalWins", totalWins, "totalLoses", totalLoses, "tokens", tokens)
-                .addOnSuccessListener {
-                    Log.i("Choose", "Successfully added plus one to total wins in FB")
-                }
-                .addOnFailureListener {
-                    Log.i("Choose", "Failed while adding plus one to FB for totalWins")
-                }
-        }catch (e: Exception){
-            Log.i("TAG", "EXCEPTION IS: $e")
-        }
-    }
 
-    private var totalWins: String = "0"
-    private var totalLoses: String = "0"
-    private fun gettingTotalWinsAndTotalLosesFromFirebase(email: String) {
-        val docRef = db.collection("nameOfUsers").document(email)
-        docRef.get()
-            .addOnSuccessListener {
-                totalWins = it.getString("totalWins")!!
-                totalLoses = it.getString("totalLoses")!!
-                Log.i("TAG", "Getting total wins successed $totalWins")
-                Log.i("TAG", "Getting total loses successed $totalLoses")
-            }
-            .addOnFailureListener {
-                Log.i("TAG", "Getting total wins or loses failed")
-            }
-    }
 
     /*REMATCH LOGIC*******************************************************************************************/
     val rematchMethods: RematchMethods = RematchMethods()

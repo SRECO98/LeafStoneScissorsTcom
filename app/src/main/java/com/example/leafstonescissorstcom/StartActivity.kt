@@ -66,7 +66,7 @@ class StartActivity : AppCompatActivity() {
         buttonCompGame(playerName, buttonStartGameGroupComp)
     }
 
-    private fun matchmake(playerName: String, roomsRef: CollectionReference, playerCheck: Int = 1) { // promjeniti da se prima refereca!
+    private fun matchmake(playerName: String, roomsRef: CollectionReference) { // promjeniti da se prima refereca!
         val query = roomsRef.whereEqualTo("status", "open").limit(1)
         query.get()
             .addOnSuccessListener { documents ->
@@ -345,6 +345,5 @@ class StartActivity : AppCompatActivity() {
                 Log.e("TAG", "Error getting open rooms: ", exception)
             }
     }
-
     /*A***********************************************************************************************************************************************************************************/
 }
