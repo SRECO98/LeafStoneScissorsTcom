@@ -385,8 +385,6 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         startActivity(intent)
     }
 
-
-
     /*REMATCH LOGIC*******************************************************************************************/
     val rematchMethods: RematchMethods = RematchMethods()
     private fun rematchMethods(roomId: String, player: Int) {
@@ -410,9 +408,9 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         playerChoose = "0"
         timer.start()
     }
-    /***********************************************************************************************************/
+    /*A***********************************************************************************************************/
 
-    /*FIREBASE LOGIC AND CALCULATION OF POINTS*/
+    /*FIREBASE LOGIC AND CALCULATION OF POINTS*-*************************************************************************/
     //Fun for changing color of fields after every round.
     override fun buttonChangeColor(stoneR: Int, stoneG: Int, stoneB: Int, leafR: Int, leafG: Int, leafB: Int, scissorsR: Int, scissorsG: Int, scissorsB: Int) {
         buttonStone.setBackgroundColor(Color.argb(58, stoneR, stoneG, stoneB))
