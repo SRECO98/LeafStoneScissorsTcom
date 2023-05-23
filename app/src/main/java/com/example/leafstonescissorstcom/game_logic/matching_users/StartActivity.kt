@@ -65,7 +65,10 @@ class StartActivity : AppCompatActivity() {
         }
 
         //Button start group game:
-        buttonCompGame(playerName, buttonStartGameGroupComp)
+        buttonStartGameGroupComp.setOnClickListener {
+            buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms"))
+        }
+
     }
 
     private fun matchmake(playerName: String, roomsRef: CollectionReference) { // promjeniti da se prima refereca!
@@ -216,80 +219,77 @@ class StartActivity : AppCompatActivity() {
 
     /* LOGIC FOR SECOND BUTTON "START GROUP COMP" ******************************************************************************************************************************/
     var roomIdCompGroup: String = ""
-    private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton){
-        buttonStartGameGroupComp.setOnClickListener {
-            textViewConnecting.isVisible = true
-            buttonStartGameGroupComp.isEnabled = false
-            buttonStartGameGroupComp.setBackgroundColor(Color.argb(255, 169, 169, 169))
-            val roomGroupComp = db.collection("groupRooms")
-            val query = roomGroupComp.whereEqualTo("status", "open").get()
-                .addOnSuccessListener {documentListener ->
-                    if(documentListener.isEmpty){
+    private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton, roomGroupComp: CollectionReference){
+        textViewConnecting.isVisible = true
+        buttonStartGameGroupComp.isEnabled = false
+        buttonStartGameGroupComp.setBackgroundColor(Color.argb(255, 169, 169, 169))
+        val query = roomGroupComp.whereEqualTo("status", "open").get()
+            .addOnSuccessListener {documentListener ->
+                if(documentListener.isEmpty){
 
-                        roomGroupComp.add(roomPlayerData)
-                            .addOnCompleteListener { documentReference ->
-                                roomIdCompGroup = documentReference.result.id
-                                playerFirstOrSecond = "first"
-                                Log.d("TAG", "Room created with ID: ${documentReference.result.id}")
-                                roomGroupComp.document(roomIdCompGroup).update("player1", playerName, "current", "2")
-                                listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomIdCompGroup), roomGroupComp) //listening to value status to know when to start a game.
-                            }
-                            .addOnFailureListener { exception ->
-                                Log.e("TAG", "Error creating room: ", exception)
-                            }
-                    }else{
-                        val room = documentListener.first()
-                        val roomId = room.id
-                        roomIdCompGroup = roomId
+                    roomGroupComp.add(roomPlayerData)
+                        .addOnCompleteListener { documentReference ->
+                            roomIdCompGroup = documentReference.result.id
+                            playerFirstOrSecond = "first"
+                            Log.d("TAG", "Room created with ID: ${documentReference.result.id}")
+                            roomGroupComp.document(roomIdCompGroup).update("player1", playerName, "current", "2")
+                            listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomIdCompGroup), roomGroupComp) //listening to value status to know when to start a game.
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("TAG", "Error creating room: ", exception)
+                        }
+                }else{
+                    val room = documentListener.first()
+                    val roomId = room.id
+                    roomIdCompGroup = roomId
 
-                        listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomId), roomGroupComp) //listening to value status to know when to start a game.
+                    listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomId), roomGroupComp) //listening to value status to know when to start a game.
 
-                        val roomRef = roomGroupComp.document(roomId)
-                        Log.i("TAG", "Id is: $roomId")
-                        roomRef.get().addOnCompleteListener{ task ->
-                            if (task.isSuccessful) {
-                                Log.i("TAG", "Task is succesful!")
-                                val documentSnapshot = task.result
-                                if (documentSnapshot != null && documentSnapshot.exists()) {
-                                    Log.i("TAG", "DocumentSnapshot exist and its not null")
-                                    val current = documentSnapshot.get("current")
-                                    Log.i("TAG", "Current is: $current")
-                                    if (current != null) {
-                                        // Use the current value
-                                        if(current == NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP){
-                                            val game: String = current as String
-                                            if(game.toInt() % 2 == 0){ //setting player place for game 1v1
-                                                playerFirstOrSecond = "second"
-                                            }else{
-                                                playerFirstOrSecond = "first"
-                                            }
-                                            val newValueGame = (game.toInt() + 1).toString()
-                                            val newPlayerString = "player$game"
-                                            roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName, "status", "close")
+                    val roomRef = roomGroupComp.document(roomId)
+                    Log.i("TAG", "Id is: $roomId")
+                    roomRef.get().addOnCompleteListener{ task ->
+                        if (task.isSuccessful) {
+                            Log.i("TAG", "Task is succesful!")
+                            val documentSnapshot = task.result
+                            if (documentSnapshot != null && documentSnapshot.exists()) {
+                                Log.i("TAG", "DocumentSnapshot exist and its not null")
+                                val current = documentSnapshot.get("current")
+                                Log.i("TAG", "Current is: $current")
+                                if (current != null) {
+                                    // Use the current value
+                                    if(current == NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP){
+                                        val game: String = current as String
+                                        if(game.toInt() % 2 == 0){ //setting player place for game 1v1
+                                            playerFirstOrSecond = "second"
                                         }else{
-                                            val game: String = current as String
-                                            val newValueGame = (game.toInt() + 1).toString()
-                                            val newPlayerString = "player${ (game.toInt())}"
-
-                                            roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName)
+                                            playerFirstOrSecond = "first"
                                         }
-                                    } else {
-                                        // Handle the case when the "current" parameter is not found
-                                        println("The current player is not available")
+                                        val newValueGame = (game.toInt() + 1).toString()
+                                        val newPlayerString = "player$game"
+                                        roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName, "status", "close")
+                                    }else{
+                                        val game: String = current as String
+                                        val newValueGame = (game.toInt() + 1).toString()
+                                        val newPlayerString = "player${ (game.toInt())}"
+
+                                        roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName)
                                     }
                                 } else {
-                                    // Handle the case when the document doesn't exist
-                                    println("The document doesn't exist")
+                                    // Handle the case when the "current" parameter is not found
+                                    println("The current player is not available")
                                 }
                             } else {
-                                // Handle any errors that occurred during the operation
-                                val exception = task.exception
-                                println("Error getting document: ${exception?.message}")
+                                // Handle the case when the document doesn't exist
+                                println("The document doesn't exist")
                             }
+                        } else {
+                            // Handle any errors that occurred during the operation
+                            val exception = task.exception
+                            println("Error getting document: ${exception?.message}")
                         }
                     }
                 }
-        }
+            }
     }
 
     private lateinit var register2: ListenerRegistration
