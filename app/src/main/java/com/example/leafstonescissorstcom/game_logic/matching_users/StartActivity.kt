@@ -2,6 +2,7 @@ package com.example.leafstonescissorstcom.game_logic.matching_users
 
 import android.content.Intent
 import android.graphics.Color
+import android.media.AsyncPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -29,9 +30,11 @@ class StartActivity : AppCompatActivity() {
     private lateinit var textViewWaiting: TextView
     private lateinit var textViewTokens: TextView
     private lateinit var textViewConnecting: TextView
+    private lateinit var roomsRefFromMain: DocumentReference
     var playerEmail = ""
     var playerTokens = ""
     var playerName = ""
+    var currentFromMain = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +61,12 @@ class StartActivity : AppCompatActivity() {
         textViewTokens.text = playerTokens
 
         if(skipOnce == "false"){
-            buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms")) //making room in same time, need delay
+            currentFromMain = intent.extras?.getString("current") ?: ""
+            Log.i("TAG", "currentFromMain $currentFromMain") //Test showed good result
+            val numberOfPlayers: String = ( ( NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP.toInt() )).toString()
+            val documentPath = intent.getStringExtra("roomsRef")!!
+            roomsRefFromMain = FirebaseFirestore.getInstance().document(documentPath)
+            buttonCompGame(playerName, buttonStartGameGroupComp, roomsRefFromMain.collection("games"), numberOfPlayers, false) //making room in same time, need delay
         }
 
         //Button start 1v1 game:
@@ -71,7 +79,7 @@ class StartActivity : AppCompatActivity() {
 
         //Button start group game:
         buttonStartGameGroupComp.setOnClickListener {
-            buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms"))
+            buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, true)
         }
 
     }
@@ -167,6 +175,7 @@ class StartActivity : AppCompatActivity() {
                     intent.putExtra("player", player)
                     intent.putExtra("kindOfGame", kindOfGame)
                     intent.putExtra("roomsRef", roomsRef.path)
+                    intent.putExtra("current", currentSend)
                     startActivity(intent)
                     finish()
                 }
@@ -215,6 +224,7 @@ class StartActivity : AppCompatActivity() {
             putExtra("player2Tokens", tokensPlayer2)
             putExtra("kindOfGame", kindOfGame)
             putExtra("roomsRef", roomsRef.path)
+            putExtra("current", currentSend)
             Log.i("TAG4", "vALUE OF PLAYER 1 NAME $playerName")
             Log.i("TAG4", "vALUE OF PLAYER 2 NAME $player2NameFromFB")
         }
@@ -224,7 +234,8 @@ class StartActivity : AppCompatActivity() {
 
     /* LOGIC FOR SECOND BUTTON "START GROUP COMP" ******************************************************************************************************************************/
     var roomIdCompGroup: String = ""
-    private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton, roomGroupComp: CollectionReference){
+    var currentSend: String = ""
+    private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton, roomGroupComp: CollectionReference, numberOfPlayers: String, onlyOnce: Boolean){
         textViewConnecting.isVisible = true
         buttonStartGameGroupComp.isEnabled = false
         buttonStartGameGroupComp.setBackgroundColor(Color.argb(255, 169, 169, 169))
@@ -232,12 +243,26 @@ class StartActivity : AppCompatActivity() {
             .addOnSuccessListener {documentListener ->
                 if(documentListener.isEmpty){
 
+                    var player1 = ""
                     roomGroupComp.add(roomPlayerData)
-                        .addOnCompleteListener { documentReference ->
+                        .addOnCompleteListener { documentReference ->  //first round
                             roomIdCompGroup = documentReference.result.id
-                            playerFirstOrSecond = "first"
+                            if(onlyOnce){
+                                playerFirstOrSecond = "first"
+                                currentSend = "1"
+                                player1 = "player1"
+                            }else{
+                                player1 = "player" + currentFromMain
+                                Log.i("TAG", "Player1111: $player1, $currentFromMain")
+                                currentSend = currentFromMain
+                                if( (currentFromMain.toInt() % 2) == 0)
+                                    playerFirstOrSecond = "second"
+                                else
+                                    playerFirstOrSecond = "first"
+                            }
+
                             Log.d("TAG", "Room created with ID: ${documentReference.result.id}")
-                            roomGroupComp.document(roomIdCompGroup).update("player1", playerName, "current", "2")
+                            roomGroupComp.document(roomIdCompGroup).update(player1, playerName, "current", "2")
                             listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomIdCompGroup), roomGroupComp) //listening to value status to know when to start a game.
                         }
                         .addOnFailureListener { exception ->
@@ -262,20 +287,52 @@ class StartActivity : AppCompatActivity() {
                                 Log.i("TAG", "Current is: $current")
                                 if (current != null) {
                                     // Use the current value
-                                    if(current == NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP){
+                                    if(current == numberOfPlayers){ // last round
+
+                                        var newPlayerString = ""
                                         val game: String = current as String
-                                        if(game.toInt() % 2 == 0){ //setting player place for game 1v1
-                                            playerFirstOrSecond = "second"
+                                        val newValueGame = (game.toInt() + 1).toString()
+                                        if(onlyOnce){
+                                            currentSend = numberOfPlayers
+                                            if(game.toInt() % 2 == 0){ //setting player place for game 1v1
+                                                playerFirstOrSecond = "second"
+                                            }else{
+                                                playerFirstOrSecond = "first"
+                                            }
+                                            newPlayerString = "player$game"
                                         }else{
-                                            playerFirstOrSecond = "first"
+                                            currentSend = currentFromMain
+                                            if(currentFromMain.toInt() % 2 == 0){
+                                                playerFirstOrSecond = "second"
+                                            }else{
+                                                playerFirstOrSecond = "first"
+                                            }
+                                            newPlayerString = "player$currentFromMain"
                                         }
-                                        val newValueGame = (game.toInt() + 1).toString()
-                                        val newPlayerString = "player$game"
-                                        roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName, "status", "close")
-                                    }else{
+
+                                        roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName, "status", "close") //important
+                                    }else{ //middle rounds, ovdje fali logika za firstsecond
+
+                                        var newPlayerString = ""
                                         val game: String = current as String
                                         val newValueGame = (game.toInt() + 1).toString()
-                                        val newPlayerString = "player${ (game.toInt())}"
+                                        if(onlyOnce){
+                                            if(game.toInt() % 2 == 0){
+                                                playerFirstOrSecond = "second"
+                                            }else{
+                                                playerFirstOrSecond = "first"
+                                            }
+                                            newPlayerString = "player${ (game.toInt())}"
+                                            currentSend = game
+                                        }else{
+                                            currentSend = currentFromMain
+                                            if(currentFromMain.toInt() % 2 == 0){
+                                                playerFirstOrSecond = "second"
+                                            }else{
+                                                playerFirstOrSecond = "first"
+                                            }
+                                            newPlayerString = "player${currentFromMain}"
+                                        }
 
                                         roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName)
                                     }

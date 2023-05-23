@@ -51,6 +51,8 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private var player2Email: String? = ""
     private var player1Tokens: String? = ""
     private var player2Tokens: String? = ""
+    private var documentPath: String? = ""
+    private var currentPlayerField: String = ""
     private var player1TokensAfterGame: Int = 0
     private var player2TokensAfterGame: Int = 0
 
@@ -73,6 +75,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private var totalWins: String = "0"
     private var totalLoses: String = "0"
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -91,8 +94,8 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         val textViewPlayerTwoName: TextView = findViewById(R.id.playerTwoName)
         val textViewTimer: TextView = findViewById(R.id.textViewTimer)
 
-        val documentPath = intent.getStringExtra("roomsRef")!!
-        roomsRefCompGroup = FirebaseFirestore.getInstance().document(documentPath)
+        documentPath = intent.getStringExtra("roomsRef")!!
+        roomsRefCompGroup = FirebaseFirestore.getInstance().document(documentPath!!)
         kindOfGame = intent.getStringExtra("kindOfGame")
 
         player1Name = intent.getStringExtra("player1Name")
@@ -101,8 +104,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         player2Email = intent.getStringExtra("player2Email")
         player1Tokens = intent.getStringExtra("player1Tokens")
         player2Tokens = intent.getStringExtra("player2Tokens")
-        Log.i("TAG", "emailovi!! $player1Email $player2Email")
-        Log.i("TAG", "emailovi!! $player1Email $player2Email")
+        currentPlayerField = intent.getStringExtra("current")!!
         roomId = intent.getStringExtra("room_id")!!
         val player:Int = intent.getIntExtra("player", 0)
         roomsChooseRef = db.collection("rooms").document(roomId)
@@ -278,6 +280,12 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                             if(currentValuePlayerOne == NUMBER_OF_ROUNDS){
                                 val intent = Intent(this@MainActivity, StartActivity::class.java)
                                 intent.putExtra("skip_once", "false")
+                                val current = ( currentPlayerField.toInt() + 1 ) / 2
+                                intent.putExtra("current", current.toString())
+                                intent.putExtra("roomsRef", documentPath)
+                                intent.putExtra("name", player1Name)
+                                intent.putExtra("email", player1Email)
+                                intent.putExtra("tokens", player1TokensAfterGame) //???
                                 startActivity(intent)
                             }else{
                                 //call dialog lost tournament
@@ -288,6 +296,12 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                             if (currentValuePlayerTwo == NUMBER_OF_ROUNDS){
                                 val intent = Intent(this@MainActivity, StartActivity::class.java)
                                 intent.putExtra("skip_once", "false")
+                                val current = ( currentPlayerField.toInt() + 1 ) / 2
+                                intent.putExtra("current", current.toString())
+                                intent.putExtra("roomsRef", documentPath)
+                                intent.putExtra("name", player2Name)
+                                intent.putExtra("email", player2Email)
+                                intent.putExtra("tokens", player2TokensAfterGame)// ????
                                 startActivity(intent)
                             }else{
                                 //call dialog lost tournament
