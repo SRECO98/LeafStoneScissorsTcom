@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private val TOKEN_NUMBER_GET_OR_LOSE = 50
 
     //2x se poziva saveChooice ako stisnemo pick
-    //to fast covering choice of another player (blue and red) make it a little longer, when same choice make it half red/half blue somehow
+    //find a way to make a tour table.
     private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private lateinit var roomsChooseRef: DocumentReference

@@ -60,13 +60,17 @@ class StartActivity : AppCompatActivity() {
         textViewWelcome.text = newString
         textViewTokens.text = playerTokens
 
-        if(skipOnce == "false"){
+        if(skipOnce == "false"){ //When player is openning this activity as second round in tournament.
             currentFromMain = intent.extras?.getString("current") ?: ""
             Log.i("TAG", "currentFromMain $currentFromMain") //Test showed good result
-            val numberOfPlayers: String = ( ( NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP.toInt() )).toString()
-            val documentPath = intent.getStringExtra("roomsRef")!!
-            roomsRefFromMain = FirebaseFirestore.getInstance().document(documentPath)
-            buttonCompGame(playerName, buttonStartGameGroupComp, roomsRefFromMain.collection("games"), numberOfPlayers, false) //making room in same time, need delay
+            val numberOfPlayers: String = ( ( NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP.toInt() / 2)).toString()
+            if(numberOfPlayers.toInt() == 1){
+                // do dialog winner of tournament
+            }else{
+                val documentPath = intent.getStringExtra("roomsRef")!!
+                roomsRefFromMain = FirebaseFirestore.getInstance().document(documentPath)
+                buttonCompGame(playerName, buttonStartGameGroupComp, roomsRefFromMain.collection("games"), numberOfPlayers, false) //making room in same time, need delay
+            }
         }
 
         //Button start 1v1 game:
