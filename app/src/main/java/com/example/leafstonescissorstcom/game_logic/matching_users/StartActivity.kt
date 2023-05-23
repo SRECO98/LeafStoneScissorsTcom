@@ -46,15 +46,20 @@ class StartActivity : AppCompatActivity() {
         playerName = intent.extras?.getString("name") ?: ""
         playerEmail = intent.extras?.getString("email") ?: ""
         playerTokens = intent.extras?.getString("tokens") ?: ""
-        Log.i("TAG", " $playerTokens check tokens player one" )
+        val skipOnce = intent.extras?.getString("skip_once") ?: ""
 
-        if(playerName == "" || playerEmail == "" || playerTokens == ""){
+        if(playerName == "" || playerEmail == "" || playerTokens == "" || skipOnce == ""){
             finish()
         }
+
         val newString = textViewWelcome.text.toString() + " " + playerName + "!"
         Log.i("getnick", "Change textview: $newString")
         textViewWelcome.text = newString
         textViewTokens.text = playerTokens
+
+        if(skipOnce == "false"){
+            buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms")) //making room in same time, need delay
+        }
 
         //Button start 1v1 game:
         buttonStartGame.setOnClickListener {

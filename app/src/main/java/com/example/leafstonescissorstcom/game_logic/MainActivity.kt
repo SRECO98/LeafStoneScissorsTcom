@@ -266,12 +266,36 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                     stopFirstRound = true
                     timer.start()
                 }else{
-                    if(kindOfGame == "solo")
+
+                    if(kindOfGame == "solo"){
                         dialogGameOver(player)
-                    else if(kindOfGame == "group")
-                        Log.i("error", "delete this when you make down fun.")
-                        //dialogGameOver() Make new dialog for CompGroupGame
-                        //Also need to handle saving data when user doesnt press lock.
+                    }
+
+                    else if(kindOfGame == "group"){
+
+                        if(player == 1){
+
+                            if(currentValuePlayerOne == NUMBER_OF_ROUNDS){
+                                val intent = Intent(this@MainActivity, StartActivity::class.java)
+                                intent.putExtra("skip_once", "false")
+                                startActivity(intent)
+                            }else{
+                                //call dialog lost tournament
+                            }
+
+                        }else if(player == 2){
+
+                            if (currentValuePlayerTwo == NUMBER_OF_ROUNDS){
+                                val intent = Intent(this@MainActivity, StartActivity::class.java)
+                                intent.putExtra("skip_once", "false")
+                                startActivity(intent)
+                            }else{
+                                //call dialog lost tournament
+                            }
+
+                        }
+
+                    }
                 }
             }
         }

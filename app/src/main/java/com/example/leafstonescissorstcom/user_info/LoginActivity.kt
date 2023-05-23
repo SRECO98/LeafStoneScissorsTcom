@@ -85,6 +85,7 @@ class LoginActivity : AppCompatActivity() {
                     intent.putExtra("name", playerName)
                     intent.putExtra("email", emailInput)
                     intent.putExtra("tokens", playerTokens)
+                    intent.putExtra("skip_once", "true")
                     startActivity(intent)
                     Log.i("TAG", "Authentication successed.")
                     //val user = auth.currentUser
