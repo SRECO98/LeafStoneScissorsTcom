@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private val TOKEN_NUMBER_GET_OR_LOSE = 50
 
     //2x se poziva saveChooice ako stisnemo pick
-    //find a way to make a tour table.
+    //find a way to make a tour table (players added in first row, now add after finding who is winner and add scores after game is finished).
     private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private lateinit var roomsChooseRef: DocumentReference
