@@ -103,4 +103,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/buttonStartGroupComp" />
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/buttonStatsTournament"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewConnecting"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="120dp"
+        android:layout_marginEnd="120dp"
+        android:visibility="invisible"
+        android:background="@drawable/score"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

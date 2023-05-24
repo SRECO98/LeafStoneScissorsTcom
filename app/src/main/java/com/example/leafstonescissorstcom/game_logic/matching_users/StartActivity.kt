@@ -2,11 +2,11 @@ package com.example.leafstonescissorstcom.game_logic.matching_users
 
 import android.content.Intent
 import android.graphics.Color
-import android.media.AsyncPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
@@ -22,6 +22,7 @@ class StartActivity : AppCompatActivity() {
 
     private val NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = "4"
     private var playerFirstOrSecond = ""
+    private lateinit var buttonStatsTournament: AppCompatButton
 
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private var roomData = hashMapOf("player1" to "value", "player2" to "Value2", "status" to "default")
@@ -40,6 +41,7 @@ class StartActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_start)
 
+        buttonStatsTournament = findViewById(R.id.buttonStatsTournament)
         val buttonStartGame = findViewById<AppCompatButton>(R.id.buttonStart1v1)
         val buttonStartGameGroupComp = findViewById<AppCompatButton>(R.id.buttonStartGroupComp)
         textViewWaiting = findViewById(R.id.textViewWaitPlayer)
@@ -84,6 +86,11 @@ class StartActivity : AppCompatActivity() {
         //Button start group game:
         buttonStartGameGroupComp.setOnClickListener {
             buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, true)
+        }
+
+        buttonStatsTournament.setOnClickListener {
+            val intent = Intent(this, TourScoreTable::class.java)
+            startActivity(intent)
         }
     }
 
@@ -239,6 +246,7 @@ class StartActivity : AppCompatActivity() {
     var roomIdCompGroup: String = ""
     var currentSend: String = ""
     private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton, roomGroupComp: CollectionReference, numberOfPlayers: String, onlyOnce: Boolean){
+        buttonStatsTournament.visibility = View.VISIBLE
         textViewConnecting.isVisible = true
         buttonStartGameGroupComp.isEnabled = false
         buttonStartGameGroupComp.setBackgroundColor(Color.argb(255, 169, 169, 169))

@@ -12,6 +12,10 @@
         android:theme="@style/Theme.LeafStoneScissorsTcom"
         tools:targetApi="31">
         <activity
+            android:name=".game_logic.matching_users.TourScoreTable"
+            android:exported="false"
+            android:screenOrientation="landscape"/>
+        <activity
             android:name=".game_logic.analysis.AnalyzedGameActivity"
             android:exported="false" />
         <activity
