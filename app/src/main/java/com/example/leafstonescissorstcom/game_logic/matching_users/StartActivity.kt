@@ -96,8 +96,13 @@ class StartActivity : AppCompatActivity() {
             buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, true)
         }
 
+        //score table
+        val collectionReference: CollectionReference = db.collection("groupRooms")
         buttonStatsTournament.setOnClickListener {
-            val intent = Intent(this, TourScoreTable::class.java)
+            val roomsRefScoreState = collectionReference.document(roomIdOfScoreTable)
+            val intent = Intent(this, TourScoreTable::class.java).apply {
+                putExtra("room_ref", roomsRefScoreState.path)
+            }
             startActivity(intent)
         }
     }
@@ -252,6 +257,8 @@ class StartActivity : AppCompatActivity() {
 
     /* LOGIC FOR SECOND BUTTON "START GROUP COMP" ******************************************************************************************************************************/
     var roomIdCompGroup: String = ""
+    var roomIdOfScoreTable: String = ""
+    var changeOnlyOnce = true
     var currentSend: String = ""
     private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton, roomGroupComp: CollectionReference, numberOfPlayers: String, onlyOnce: Boolean){
         buttonStatsTournament.visibility = View.VISIBLE
@@ -266,6 +273,10 @@ class StartActivity : AppCompatActivity() {
                     roomGroupComp.add(roomPlayerData)
                         .addOnCompleteListener { documentReference ->  //first round
                             roomIdCompGroup = documentReference.result.id
+                            if(changeOnlyOnce){
+                                roomIdOfScoreTable = roomIdCompGroup
+                                changeOnlyOnce = false
+                            }
                             if(onlyOnce){
                                 playerFirstOrSecond = "first"
                                 currentSend = "1"
@@ -291,6 +302,10 @@ class StartActivity : AppCompatActivity() {
                     val room = documentListener.first()
                     val roomId = room.id
                     roomIdCompGroup = roomId
+                    if(changeOnlyOnce){
+                        roomIdOfScoreTable = roomIdCompGroup
+                        changeOnlyOnce = false
+                    }
 
                     listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomId), roomGroupComp) //listening to value status to know when to start a game.
 

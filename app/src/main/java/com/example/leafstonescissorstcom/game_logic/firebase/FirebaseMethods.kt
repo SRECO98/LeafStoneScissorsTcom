@@ -346,5 +346,4 @@ class FirebaseMethods {
         firebaseListener = listener
     }
 
-
 }
