@@ -13,6 +13,7 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.core.view.isVisible
 import com.example.leafstonescissorstcom.R
 import com.example.leafstonescissorstcom.game_logic.MainActivity
+import com.example.leafstonescissorstcom.game_logic.tour_score.TourScoreTable
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
