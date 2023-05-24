@@ -26,8 +26,15 @@ class StartActivity : AppCompatActivity() {
 
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private var roomData = hashMapOf("player1" to "value", "player2" to "Value2", "status" to "default")
-    private var roomPlayerData = hashMapOf("player1" to "value", "player2" to "value", "player3" to "value", "player4" to "value",
-        "player5" to "value", "player6" to "value", "player7" to "value", "player8" to "value", "current" to "1", "status" to "open")
+    //Those are fields for firebase, in those fields we will remember who passed to the next stage of tournament
+    private var roomPlayerData = hashMapOf(
+        //osmina
+        "player1" to "value", "player2" to "value", "player3" to "value", "player4" to "value",
+        "player5" to "value", "player6" to "value", "player7" to "value", "player8" to "value",
+        //cetvrt finale
+        "player21" to "value", "player22" to "value", "player23" to "value", "player24" to "value",
+        //finale                                            //Ovo je potrebno radi logike.
+        "player31" to "value", "player32" to "value",      "current" to "1", "status" to "open")
     private lateinit var textViewWaiting: TextView
     private lateinit var textViewTokens: TextView
     private lateinit var textViewConnecting: TextView

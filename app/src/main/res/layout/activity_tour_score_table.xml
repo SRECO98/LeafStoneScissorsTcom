@@ -21,6 +21,7 @@
             android:id="@+id/tourScoreTableOne"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/border"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -32,6 +33,7 @@
                     android:id="@+id/textViewPlayer1"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="Player 1"
                     android:textSize="14sp" />
@@ -40,6 +42,7 @@
                     android:id="@+id/textViewPlayer2"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="Player 2"
                     android:textSize="14sp" />
@@ -55,6 +58,7 @@
                     android:id="@+id/textViewPlayer1Score"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="-" />
 
@@ -62,6 +66,7 @@
                     android:id="@+id/textViewPlayer2Score"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="-" />
             </LinearLayout>
@@ -74,6 +79,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:background="@drawable/border"
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/tourScoreTableTwo"
@@ -88,6 +94,7 @@
                     android:id="@+id/textViewPlayer3"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="Player 3"
                     android:textSize="14sp" />
@@ -96,6 +103,7 @@
                     android:id="@+id/textViewPlayer4"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="Player 4"
                     android:textSize="14sp" />
@@ -111,6 +119,7 @@
                     android:id="@+id/textViewPlayer3Score"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="-" />
 
@@ -118,6 +127,7 @@
                     android:id="@+id/textViewPlayer4Score"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="-" />
             </LinearLayout>
@@ -131,6 +141,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:orientation="horizontal"
+            android:background="@drawable/border"
             app:layout_constraintEnd_toStartOf="@id/tourScoreTableForth"
             app:layout_constraintStart_toEndOf="@id/tourScoreTableTwo"
             app:layout_constraintTop_toTopOf="parent">
@@ -145,6 +156,7 @@
                     android:layout_width="100dp"
                     android:layout_height="20dp"
                     android:gravity="center"
+                    android:background="@drawable/border_inside_table"
                     android:text="Player 5"
                     android:textSize="14sp" />
 
@@ -152,6 +164,7 @@
                     android:id="@+id/textViewPlayer6"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="Player 6"
                     android:textSize="14sp" />
@@ -167,6 +180,7 @@
                     android:id="@+id/textViewPlayer5Score"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="-" />
 
@@ -174,6 +188,7 @@
                     android:id="@+id/textViewPlayer6Score"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="-" />
             </LinearLayout>
@@ -186,6 +201,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:background="@drawable/border"
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/tourScoreTableThree"
@@ -200,6 +216,7 @@
                     android:id="@+id/textViewPlayer7"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="Player 7"
                     android:textSize="14sp" />
@@ -208,6 +225,7 @@
                     android:id="@+id/textViewPlayer8"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="Player 8"
                     android:textSize="14sp" />
@@ -222,6 +240,7 @@
                 <TextView
                     android:id="@+id/textViewPlayer7Score"
                     android:layout_width="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:layout_height="20dp"
                     android:gravity="center"
                     android:text="-" />
@@ -230,6 +249,7 @@
                     android:id="@+id/textViewPlayer8Score"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="-" />
             </LinearLayout>
@@ -257,6 +277,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="44dp"
+            android:background="@drawable/border"
             android:orientation="horizontal"
             app:layout_constraintEnd_toStartOf="@+id/tourScoreTableTwoTwo"
             app:layout_constraintStart_toStartOf="parent"
@@ -271,6 +292,7 @@
                     android:id="@+id/textViewPlayer21"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="Player 1"
                     android:textSize="14sp" />
@@ -279,6 +301,7 @@
                     android:id="@+id/textViewPlayer22"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="Player 2"
                     android:textSize="14sp" />
@@ -294,6 +317,7 @@
                     android:id="@+id/textViewPlayer21Score"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="-" />
 
@@ -302,6 +326,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:gravity="center"
+                    android:background="@drawable/border_inside_table"
                     android:text="-" />
             </LinearLayout>
 
@@ -314,6 +339,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:orientation="horizontal"
+            android:background="@drawable/border"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/tourScoreTableTwo"
             app:layout_constraintTop_toTopOf="parent">
@@ -328,6 +354,7 @@
                     android:layout_width="100dp"
                     android:layout_height="20dp"
                     android:gravity="center"
+                    android:background="@drawable/border_inside_table"
                     android:text="Player 3"
                     android:textSize="14sp" />
 
@@ -335,6 +362,7 @@
                     android:id="@+id/textViewPlayer24"
                     android:layout_width="100dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="Player 4"
                     android:textSize="14sp" />
@@ -350,11 +378,13 @@
                     android:id="@+id/textViewPlayer23Score"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:background="@drawable/border_inside_table"
                     android:gravity="center"
                     android:text="-" />
 
                 <TextView
                     android:id="@+id/textViewPlayer24Score"
+                    android:background="@drawable/border_inside_table"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:gravity="center"
@@ -374,9 +404,9 @@
         android:id="@+id/linearLayoutThirdRow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
         android:orientation="horizontal"
-        android:layout_marginTop="16dp"
+        android:background="@drawable/border"
+        android:layout_marginTop="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/linearLayoutSecondRow">
@@ -390,16 +420,18 @@
                 android:id="@+id/textViewPlayer31"
                 android:layout_width="100dp"
                 android:layout_height="20dp"
+                android:background="@drawable/border_inside_table"
                 android:gravity="center"
-                android:text="Player 3"
+                android:text="Player 1"
                 android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/textViewPlayer32"
                 android:layout_width="100dp"
                 android:layout_height="20dp"
+                android:background="@drawable/border_inside_table"
                 android:gravity="center"
-                android:text="Player 4"
+                android:text="Player 2"
                 android:textSize="14sp" />
 
         </LinearLayout>
@@ -414,12 +446,14 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:gravity="center"
+                android:background="@drawable/border_inside_table"
                 android:text="-" />
 
             <TextView
                 android:id="@+id/textViewPlayer32Score"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
+                android:background="@drawable/border_inside_table"
                 android:gravity="center"
                 android:text="-" />
 
