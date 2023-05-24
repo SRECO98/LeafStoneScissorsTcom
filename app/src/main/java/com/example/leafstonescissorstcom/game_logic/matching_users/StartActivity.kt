@@ -20,7 +20,7 @@ import com.google.firebase.firestore.ListenerRegistration
 
 class StartActivity : AppCompatActivity() {
 
-    private val NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = "2"
+    private val NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = "4"
     private var playerFirstOrSecond = ""
 
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -85,7 +85,6 @@ class StartActivity : AppCompatActivity() {
         buttonStartGameGroupComp.setOnClickListener {
             buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, true)
         }
-
     }
 
     private fun matchmake(playerName: String, roomsRef: CollectionReference) { // promjeniti da se prima refereca!

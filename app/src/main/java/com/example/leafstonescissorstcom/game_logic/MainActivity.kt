@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -151,7 +153,6 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         }
 
         buttonGo.setOnClickListener {
-            userPressedButtonLock = true
             if(buttonChoose2 == "0"){ //if one of players didnt chose a picture.
                 Toast.makeText(this, "Please, choose one of the pictures!", Toast.LENGTH_SHORT).show()
             }else{
@@ -188,13 +189,12 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     }
 
     var stopFirstRound: Boolean = false
-    var userPressedButtonLock = false // if user didnt press button lock we must enter auto zero to firebase
     private fun timerFun (textViewTimer: TextView, player: Int){
-        timer = object : CountDownTimer(12000, 1000) {
+        timer = object : CountDownTimer(13000, 1000) {
             override fun onTick(remaining: Long) {
 
                 if(stopFirstRound){
-                    if(remaining in 8001..10100){
+                    if(remaining in 9001..11100){
                         if(doOnlyOnce2 == true){
                             doOnlyOnce2 = false //we will put it on true after finishing onTick
                             textViewTimer.text = ""
@@ -212,20 +212,21 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                         }
                     }
                 }
-                if (remaining in 2001..5999) {
+                if (remaining in 3001..6999) {
                     textViewTimer.setTextColor(Color.argb(255, 255, 0, 0))
                 }
-                if(remaining > 2001){
-                    textViewTimer.text = (((remaining - 2000) / 1000).toString())
+                if(remaining > 3001){
+                    textViewTimer.text = (((remaining - 3000) / 1000).toString()) //putting counter on screen
                 }else{
                     if(doOnlyOnce == true){
                         doOnlyOnce = false //we will put it on true after finishing onTick
                         textViewTimer.text = ""
-                        if(kindOfGame == "solo"){
-                            firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsChooseRef)
+                        if(kindOfGame == "solo"){  //saving picks in firebase
+                            firebaseMethods.saveChoose(player, playerChoose, roomsChooseRef)
                         }else{
-                            firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsRefCompGroup)
+                            firebaseMethods.saveChoose(player, playerChoose, roomsRefCompGroup)
                         }
+                        startDelay(player, roomsChooseRef) //getting data 1 sec after
                         buttonGo.isEnabled = false //turn off buttons because user checked his choice
                         buttonStone.isEnabled = false
                         buttonLeaf.isEnabled = false
@@ -242,21 +243,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 buttonChoose2 = "0"
                 counterRounds += 1
                 textViewTimer.text = "9"
-                Log.i("tag", "User pressed button: $userPressedButtonLock")
-                if(!userPressedButtonLock){ //if user didnt press lock we have to add zero to firebase as score, but its not working so
-                    /*GlobalScope.launch {
-                        try {
-                            if(kindOfGame == "solo")
-                                firebaseMethods.saveChoose(player, playerChoose, roomsChooseRef) //if user didnt press lock, we enter data at the end of round.
-                            else
-                                firebaseMethods.saveChoose(player, playerChoose, roomsRefCompGroup)
-                        }catch (e: Exception){
-                            Log.i("TAG", "exception global scope coroutine: $e")
-                        }
-                    }*/
-                }else{
-                    userPressedButtonLock = false
-                }
+
                 textViewTimer.setTextColor(Color.argb(255, 251, 239, 2))
                 if (Integer.parseInt(textViewPlayerOneScore.text.toString()) < NUMBER_OF_ROUNDS && Integer.parseInt( //this doest get alst value on time because it needs 2-3 sec to update score on screen.
                         textViewPlayerTwoScore.text.toString()) < NUMBER_OF_ROUNDS){
@@ -313,6 +300,17 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 }
             }
         }
+    }
+
+    private fun startDelay(player: Int, roomsChooseRef: DocumentReference) { //delegating for 2 seconds because there is a little delay in getting data from firebase.
+        val delayMillis = 1250L
+        Handler(Looper.getMainLooper()).postDelayed({
+            if(kindOfGame == "solo"){
+                firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsChooseRef)
+            }else{
+                firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsRefCompGroup)
+            }
+        }, delayMillis)
     }
 
     var doOnlyOnce: Boolean = true
