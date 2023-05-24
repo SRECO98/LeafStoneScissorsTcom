@@ -146,13 +146,11 @@ class StartActivity : AppCompatActivity() {
                 Log.d("TAG", "Room created with ID: ${documentReference.id}")
                 // Join the room as the first player
                 joinRoom(documentReference.id, player = 1, playerName, roomsRef = roomsRef.document(documentReference.id), kindOfGame = kindOfGame)
-                idForGroupCompPlayer2 = documentReference.id
             }
             .addOnFailureListener { exception ->
                 Log.e("TAG", "Error creating room: ", exception)
             }
     }
-    var idForGroupCompPlayer2 = ""
 
     private fun joinRoom(roomId: String, player: Int, playerName: String, roomsRef: DocumentReference, kindOfGame: String) {
         var player1NameFromFirebase: String? = "unknown"
