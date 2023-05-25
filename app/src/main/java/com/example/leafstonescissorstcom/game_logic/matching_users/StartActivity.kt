@@ -109,7 +109,6 @@ class StartActivity : AppCompatActivity() {
         //score table
         collectionReference = db.collection("groupRooms")
         buttonStatsTournament.setOnClickListener {
-            roomsRefScoreState = collectionReference.document(roomIdOfScoreTable)
             val intent = Intent(this, TourScoreTable::class.java).apply {
                 putExtra("room_ref", roomsRefScoreState.path)
             }
@@ -285,6 +284,7 @@ class StartActivity : AppCompatActivity() {
                             roomIdCompGroup = documentReference.result.id
                             if(changeOnlyOnce){
                                 roomIdOfScoreTable = roomIdCompGroup
+                                roomsRefScoreState = collectionReference.document(roomIdOfScoreTable)
                                 changeOnlyOnce = false
                             }
                             if(onlyOnce){
@@ -314,6 +314,7 @@ class StartActivity : AppCompatActivity() {
                     roomIdCompGroup = roomId
                     if(changeOnlyOnce){
                         roomIdOfScoreTable = roomIdCompGroup
+                        roomsRefScoreState = collectionReference.document(roomIdOfScoreTable)
                         changeOnlyOnce = false
                     }
 

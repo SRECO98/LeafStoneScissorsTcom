@@ -1,6 +1,7 @@
 package com.example.leafstonescissorstcom.game_logic
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -186,7 +187,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 buttonGo.setBackgroundColor(Color.argb(255, 169, 169, 169))
             }
         }
-        timerFun(textViewTimer, player)
+        timerFun(textViewTimer, player, this)
         timer.start()
 
         builder = AlertDialog.Builder(this)
@@ -199,7 +200,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     }
 
     var stopFirstRound: Boolean = false
-    private fun timerFun (textViewTimer: TextView, player: Int){
+    private fun timerFun (textViewTimer: TextView, player: Int, context: Context){
         timer = object : CountDownTimer(13000, 1000) {
             override fun onTick(remaining: Long) {
 
@@ -271,46 +272,33 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                     }
 
                     else if(kindOfGame == "group"){
+
+
                         val updateScore = UpdateScore()
+                        val current = ( currentPlayerField.toInt() + 1 ) / 2
                         if(player == 1){
 
                             if(currentValuePlayerOne == NUMBER_OF_ROUNDS){
-                                val intent = Intent(this@MainActivity, StartActivity::class.java)
-                                intent.putExtra("skip_once", "false")
-                                val current = ( currentPlayerField.toInt() + 1 ) / 2
-                                intent.putExtra("current", current.toString())
-                                intent.putExtra("roomsRef", documentPath)
-                                intent.putExtra("name", player1Name)
-                                intent.putExtra("email", player1Email)
-                                intent.putExtra("tokens", player1TokensAfterGame) //???
-                                startActivity(intent)
+                                beginStartActivity(context, player1Name!!, player1Email!!, player1Tokens!!, current)
                                 //add 1 to score field and name for next table
-                                updateScore.updateScoreFromTableInFB("1", currentPlayerField, roomsRefScoreFromStartActivity)
-                                updateScore.updateNamesFromTableInFB(player1Name!!, current.toString(), roomsRefScoreFromStartActivity)
+                                updateScore.updateScoreFromTableInFB("1", "score"+currentPlayerField, roomsRefScoreFromStartActivity) //jos prepraviti kada se upisuje za player21 itd..
+                                updateScore.updateNamesFromTableInFB(player1Name!!, "player2"+current.toString(), roomsRefScoreFromStartActivity)
                             }else{
                                 //add 0 to score field
-                                updateScore.updateScoreFromTableInFB("0", currentPlayerField, roomsRefScoreFromStartActivity)
+                                updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, roomsRefScoreFromStartActivity)
                                 //call dialog lost tournament
                             }
 
                         }else if(player == 2){
 
                             if (currentValuePlayerTwo == NUMBER_OF_ROUNDS){
-                                val intent = Intent(this@MainActivity, StartActivity::class.java)
-                                intent.putExtra("skip_once", "false")
-                                val current = ( currentPlayerField.toInt() + 1 ) / 2
-                                intent.putExtra("current", current.toString())
-                                intent.putExtra("roomsRef", documentPath)
-                                intent.putExtra("name", player2Name)
-                                intent.putExtra("email", player2Email)
-                                intent.putExtra("tokens", player2TokensAfterGame) //???
-                                startActivity(intent)
+                                beginStartActivity(context, player1Name!!, player2Email!!, player2Tokens!!, current)
                                 //add 1 to score field and name for next table
-                                updateScore.updateScoreFromTableInFB("1", currentPlayerField, roomsRefScoreFromStartActivity)
-                                updateScore.updateNamesFromTableInFB(player2Name!!, current.toString(), roomsRefScoreFromStartActivity)
+                                updateScore.updateScoreFromTableInFB("1", "score"+currentPlayerField, roomsRefScoreFromStartActivity)
+                                updateScore.updateNamesFromTableInFB(player2Name!!, "player2"+current.toString(), roomsRefScoreFromStartActivity)
                             }else{
                                 //add 0 to score field
-                                updateScore.updateScoreFromTableInFB("0", currentPlayerField, roomsRefScoreFromStartActivity)
+                                updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, roomsRefScoreFromStartActivity)
                                 //call dialog lost tournament
                             }
 
@@ -320,6 +308,20 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                 }
             }
         }
+    }
+
+    private fun beginStartActivity(context: Context ,playerName: String, playerEmail: String, playerToken: String, current: Int){
+        Log.i("TAG", "If openned once!")
+
+        val intent = Intent(context, StartActivity::class.java).apply {
+            putExtra("skip_once", "false")
+            putExtra("current", current.toString())
+            putExtra("roomsRef", documentPath)
+            putExtra("name", playerName)
+            putExtra("email", playerEmail)
+            putExtra("tokens", playerToken) //???
+        }
+        startActivity(intent)
     }
 
     private fun startDelay(player: Int, roomsChooseRef: DocumentReference) { //delegating for 2 seconds because there is a little delay in getting data from firebase.
