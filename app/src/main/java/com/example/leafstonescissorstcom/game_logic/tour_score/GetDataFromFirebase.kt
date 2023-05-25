@@ -26,10 +26,29 @@ class GetDataFromFirebase {
                         val player31 = documentSnapshot.getString("player31")!!
                         val player32 = documentSnapshot.getString("player32")!!
 
+                        val score1 = documentSnapshot.getString("score1")!!
+                        val score2 = documentSnapshot.getString("score2")!!
+                        val score3 = documentSnapshot.getString("score3")!!
+                        val score4 = documentSnapshot.getString("score4")!!
+                        val score5 = documentSnapshot.getString("score5")!!
+                        val score6 = documentSnapshot.getString("score6")!!
+                        val score7 = documentSnapshot.getString("score7")!!
+                        val score8 = documentSnapshot.getString("score8")!!
+                        val score21 = documentSnapshot.getString("score21")!!
+                        val score22 = documentSnapshot.getString("score22")!!
+                        val score23 = documentSnapshot.getString("score23")!!
+                        val score24 = documentSnapshot.getString("score24")!!
+                        val score31 = documentSnapshot.getString("score31")!!
+                        val score32 = documentSnapshot.getString("score32")!!
+
+
                         updateScoreTable?.updateScoreTable(
                             player1, player2, player3, player4, player5, player6, player7, player8,
                             player21, player22, player23, player24,
-                            player31, player32
+                            player31, player32,
+                            score1, score2, score3, score4, score5, score6, score7, score8,
+                            score21, score22, score23, score24,
+                            score31, score32
                         )
                     }
                 }else {
@@ -43,9 +62,14 @@ class GetDataFromFirebase {
 
     interface UpdateScoreTable{
         fun updateScoreTable(
-            player1: String, player2: String, player3: String, player4: String, player5: String, player6: String, player7: String, player8: String,
+            player1: String, player2: String, player3: String, player4: String,
+            player5: String, player6: String, player7: String, player8: String,
             player21: String, player22: String, player23: String, player24: String,
             player31: String, player32: String,
+            score1: String, score2: String, score3: String, score4: String,
+            score5: String, score6: String, score7: String, score8: String,
+            score21: String, score22: String, score23: String, score24: String,
+            score31: String, score32: String,
         )
     }
 

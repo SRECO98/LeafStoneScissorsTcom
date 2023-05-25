@@ -20,6 +20,7 @@ import com.example.leafstonescissorstcom.R
 import com.example.leafstonescissorstcom.game_logic.analysis.AnalyzedGameActivity
 import com.example.leafstonescissorstcom.game_logic.firebase.FirebaseMethods
 import com.example.leafstonescissorstcom.game_logic.firebase.TotalWinLose
+import com.example.leafstonescissorstcom.game_logic.firebase.UpdateScore
 import com.example.leafstonescissorstcom.game_logic.matching_users.StartActivity
 import com.example.leafstonescissorstcom.game_logic.rematch.RematchMethods
 import com.google.firebase.firestore.DocumentReference
@@ -37,6 +38,9 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private lateinit var roomsChooseRef: DocumentReference
+    private lateinit var roomsRefCompGroup: DocumentReference
+    private lateinit var roomsRefScoreFromStartActivity: DocumentReference
+
     var playerChoose = "0"
     private lateinit var textViewPlayerOneScore: TextView
     private lateinit var textViewPlayerTwoScore: TextView
@@ -45,7 +49,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private lateinit var buttonSccissors: AppCompatButton
     private lateinit var buttonGo: AppCompatButton
     private lateinit var roomId: String
-    private lateinit var roomsRefCompGroup: DocumentReference
+
     private var kindOfGame: String? = ""
     private var player1Name: String? = ""
     private var player2Name: String? = ""
@@ -54,6 +58,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private var player1Tokens: String? = ""
     private var player2Tokens: String? = ""
     private var documentPath: String? = ""
+    private var documentPathScore: String? = ""
     private var currentPlayerField: String = ""
     private var player1TokensAfterGame: Int = 0
     private var player2TokensAfterGame: Int = 0
@@ -96,6 +101,11 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         val textViewPlayerTwoName: TextView = findViewById(R.id.playerTwoName)
         val textViewTimer: TextView = findViewById(R.id.textViewTimer)
 
+        //getting reference to score of player and name of players in firebase
+        documentPathScore = intent.getStringExtra("score_ref")!!  //getting document from StartActivity
+        roomsRefScoreFromStartActivity = FirebaseFirestore.getInstance().document(documentPathScore!!) //finding real ref by documentPath
+
+        //reference of game logic in firebase
         documentPath = intent.getStringExtra("roomsRef")!!
         roomsRefCompGroup = FirebaseFirestore.getInstance().document(documentPath!!)
         kindOfGame = intent.getStringExtra("kindOfGame")
@@ -261,7 +271,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                     }
 
                     else if(kindOfGame == "group"){
-
+                        val updateScore = UpdateScore()
                         if(player == 1){
 
                             if(currentValuePlayerOne == NUMBER_OF_ROUNDS){
@@ -274,7 +284,12 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                                 intent.putExtra("email", player1Email)
                                 intent.putExtra("tokens", player1TokensAfterGame) //???
                                 startActivity(intent)
+                                //add 1 to score field and name for next table
+                                updateScore.updateScoreFromTableInFB("1", currentPlayerField, roomsRefScoreFromStartActivity)
+                                updateScore.updateNamesFromTableInFB(player1Name!!, current.toString(), roomsRefScoreFromStartActivity)
                             }else{
+                                //add 0 to score field
+                                updateScore.updateScoreFromTableInFB("0", currentPlayerField, roomsRefScoreFromStartActivity)
                                 //call dialog lost tournament
                             }
 
@@ -288,9 +303,14 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                                 intent.putExtra("roomsRef", documentPath)
                                 intent.putExtra("name", player2Name)
                                 intent.putExtra("email", player2Email)
-                                intent.putExtra("tokens", player2TokensAfterGame)// ????
+                                intent.putExtra("tokens", player2TokensAfterGame) //???
                                 startActivity(intent)
+                                //add 1 to score field and name for next table
+                                updateScore.updateScoreFromTableInFB("1", currentPlayerField, roomsRefScoreFromStartActivity)
+                                updateScore.updateNamesFromTableInFB(player2Name!!, current.toString(), roomsRefScoreFromStartActivity)
                             }else{
+                                //add 0 to score field
+                                updateScore.updateScoreFromTableInFB("0", currentPlayerField, roomsRefScoreFromStartActivity)
                                 //call dialog lost tournament
                             }
 

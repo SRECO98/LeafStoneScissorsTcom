@@ -60,7 +60,11 @@ class TourScoreTable : AppCompatActivity(), GetDataFromFirebase.UpdateScoreTable
         player1: String, player2: String, player3: String, player4: String,
         player5: String, player6: String, player7: String, player8: String,
         player21: String, player22: String, player23: String, player24: String,
-        player31: String, player32: String
+        player31: String, player32: String,
+        score1: String, score2: String, score3: String, score4: String,
+        score5: String, score6: String, score7: String, score8: String,
+        score21: String, score22: String, score23: String, score24: String,
+        score31: String, score32: String
     ) {
         textViewPlayer1.text = player1
         textViewPlayer2.text = player2

@@ -35,11 +35,21 @@ class StartActivity : AppCompatActivity() {
         //cetvrt finale
         "player21" to "value", "player22" to "value", "player23" to "value", "player24" to "value",
         //finale                                            //Ovo je potrebno radi logike.
-        "player31" to "value", "player32" to "value",      "current" to "1", "status" to "open")
+        "player31" to "value", "player32" to "value",      "current" to "1", "status" to "open",
+        //osmina score
+        "score1" to "-", "score2" to "-", "score3" to "-", "score4" to "-",
+        "score5" to "-", "score6" to "-", "score7" to "-", "score8" to "-",
+        //cetvrtina score
+        "score21" to "-", "score22" to "-", "score23" to "-", "score24" to "-",
+        //finale score
+        "score31" to "-", "score32" to "-",
+        )
     private lateinit var textViewWaiting: TextView
     private lateinit var textViewTokens: TextView
     private lateinit var textViewConnecting: TextView
     private lateinit var roomsRefFromMain: DocumentReference
+    private lateinit var roomsRefScoreState: DocumentReference
+    private lateinit var collectionReference: CollectionReference
     var playerEmail = ""
     var playerTokens = ""
     var playerName = ""
@@ -97,9 +107,9 @@ class StartActivity : AppCompatActivity() {
         }
 
         //score table
-        val collectionReference: CollectionReference = db.collection("groupRooms")
+        collectionReference = db.collection("groupRooms")
         buttonStatsTournament.setOnClickListener {
-            val roomsRefScoreState = collectionReference.document(roomIdOfScoreTable)
+            roomsRefScoreState = collectionReference.document(roomIdOfScoreTable)
             val intent = Intent(this, TourScoreTable::class.java).apply {
                 putExtra("room_ref", roomsRefScoreState.path)
             }
@@ -197,6 +207,7 @@ class StartActivity : AppCompatActivity() {
                     intent.putExtra("kindOfGame", kindOfGame)
                     intent.putExtra("roomsRef", roomsRef.path)
                     intent.putExtra("current", currentSend)
+                    intent.putExtra("score_ref", roomsRefScoreState.path)
                     startActivity(intent)
                     finish()
                 }
@@ -246,6 +257,7 @@ class StartActivity : AppCompatActivity() {
             putExtra("kindOfGame", kindOfGame)
             putExtra("roomsRef", roomsRef.path)
             putExtra("current", currentSend)
+            putExtra("score_ref", roomsRefScoreState.path)
             Log.i("TAG4", "vALUE OF PLAYER 1 NAME $playerName")
             Log.i("TAG4", "vALUE OF PLAYER 2 NAME $player2NameFromFB")
         }
@@ -343,7 +355,7 @@ class StartActivity : AppCompatActivity() {
                                         }
 
                                         roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName, "status", "close") //important
-                                    }else{ //middle rounds, ovdje fali logika za firstsecond
+                                    }else{
 
                                         var newPlayerString = ""
                                         val game: String = current as String
