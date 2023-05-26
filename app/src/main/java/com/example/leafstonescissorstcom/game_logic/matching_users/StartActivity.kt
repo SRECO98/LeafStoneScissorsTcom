@@ -89,7 +89,8 @@ class StartActivity : AppCompatActivity() {
             }else{
                 val documentPath = intent.getStringExtra("roomsRef")!!
                 roomsRefFromMain = FirebaseFirestore.getInstance().document(documentPath)
-                buttonCompGame(playerName, buttonStartGameGroupComp, roomsRefFromMain.collection("games"), numberOfPlayers, false) //making room in same time, need delay
+                Log.i("TAG", "Room id score: $roomIdOfScoreTable")
+                buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, true)
             }
         }
 
@@ -269,13 +270,14 @@ class StartActivity : AppCompatActivity() {
     var roomIdOfScoreTable: String = ""
     var changeOnlyOnce = true
     var currentSend: String = ""
-    private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton, roomGroupComp: CollectionReference, numberOfPlayers: String, onlyOnce: Boolean){
+    private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton, roomGroupComp: CollectionReference, numberOfPlayers: String, openFromMainOrNot: Boolean){
         buttonStatsTournament.visibility = View.VISIBLE
         textViewConnecting.isVisible = true
         buttonStartGameGroupComp.isEnabled = false
         buttonStartGameGroupComp.setBackgroundColor(Color.argb(255, 169, 169, 169))
+
         val query = roomGroupComp.whereEqualTo("status", "open").get()
-            .addOnSuccessListener {documentListener ->
+            .addOnSuccessListener { documentListener ->
                 if(documentListener.isEmpty){
 
                     var player1 = ""
@@ -287,7 +289,7 @@ class StartActivity : AppCompatActivity() {
                                 roomsRefScoreState = collectionReference.document(roomIdOfScoreTable)
                                 changeOnlyOnce = false
                             }
-                            if(onlyOnce){
+                            if(openFromMainOrNot){ //done
                                 playerFirstOrSecond = "first"
                                 currentSend = "1"
                                 player1 = "player1"
@@ -337,7 +339,7 @@ class StartActivity : AppCompatActivity() {
                                         var newPlayerString = ""
                                         val game: String = current as String
                                         val newValueGame = (game.toInt() + 1).toString()
-                                        if(onlyOnce){
+                                        if(openFromMainOrNot){
                                             currentSend = numberOfPlayers
                                             if(game.toInt() % 2 == 0){ //setting player place for game 1v1
                                                 playerFirstOrSecond = "second"
@@ -361,7 +363,7 @@ class StartActivity : AppCompatActivity() {
                                         var newPlayerString = ""
                                         val game: String = current as String
                                         val newValueGame = (game.toInt() + 1).toString()
-                                        if(onlyOnce){
+                                        if(openFromMainOrNot){
                                             if(game.toInt() % 2 == 0){
                                                 playerFirstOrSecond = "second"
                                             }else{
