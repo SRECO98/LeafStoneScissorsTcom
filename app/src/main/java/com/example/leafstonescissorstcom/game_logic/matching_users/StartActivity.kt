@@ -411,10 +411,8 @@ class StartActivity : AppCompatActivity() {
                 //start activity (but first find how to pair players in games 1v1)
                 if(playerFirstOrSecond == "first"){
                     matchmakeForCompGroup(playerName, roomsRef = collection.document(roomIdCompGroup).collection("games"), playerCheck = 1)
-                    //createRoom(playerName = playerName, roomsRef = collection.document(roomIdCompGroup).collection("games")) //game not starting.
                     textViewConnecting.text = "Connecting ..."
                     textViewConnecting.isVisible = true
-                    //newAcitvity(playerName, player2NameFromFB, player2EmailFromFB, playerEmail, roomId, player, playerTokens, player2TokensFromFB) need to call this somehow.
                 }else if(playerFirstOrSecond == "second"){
                     textViewConnecting.text = "Connecting ..."
                     textViewConnecting.isVisible = true

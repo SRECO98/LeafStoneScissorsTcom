@@ -116,7 +116,7 @@ class GroupTournament {
                                 }else{
                                     playerFirstOrSecond = "first"
                                 }
-                                firstRoomRefDoc.update(playerField, playerName, "status2", "full") //game pocinje
+                                firstRoomRefDoc.update(playerField, playerName, "status2", "close") //game pocinje
                             }else{
 
                                 val nextCurrent = (current as Int + 1).toString()
