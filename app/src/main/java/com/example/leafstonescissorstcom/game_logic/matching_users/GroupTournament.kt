@@ -47,20 +47,20 @@ class GroupTournament {
                                 val documentSnapshot = task.result
                                 if(documentSnapshot != null && documentSnapshot.exists()){
                                     Log.i("TAG", "DocumentSnapshot exist and its not null")
-                                    val current = documentSnapshot.get("current")
+                                    val current = documentSnapshot.get("current") //current = trenutan broj igraca u sobi, ceka se max broj da bi poceli game
                                     Log.i("TAG", "Current is: $current")
                                     if(current != null){
+
+                                        val playerField = "player$current"
+                                        currentSend = current.toString() //Ovu vrednost saljemo u MainActivity
+
                                         if(current == numberOfPlayers){ //last player in tournament
 
-                                            val playerField = "player$current"
                                             playerFirstOrSecond = "second"
-                                            currentSend = current.toString() //Ovu vrednost saljemo u MainActivity
                                             firstRoomRefDoc.update(playerField, playerName, "status", "close") //now it will start function listeningTosTATUS
                                         }else{
 
-                                            val playerField = "player$current"
                                             val nextCurrent = (current as Int + 1).toString()
-                                            currentSend = current.toString()
                                             if(current % 2 == 0){
                                                 playerFirstOrSecond = "second"
                                             }else{
@@ -91,8 +91,53 @@ class GroupTournament {
         playerName: String,
         firstRoomRefDoc: DocumentReference,
         numberOfPlayers: String,
+        currentFromMain: String
     ){
 
+        //listeningToStatus()
+        firstRoomRefDoc.get() //izvlacenje vrijednosti current iz firebase da bismo znali koji je igrac po redu
+            .addOnCompleteListener { task ->
+                if(task.isSuccessful){
+                    Log.i("TAG", "Task is succesful!")
+                    val documentSnapshot = task.result
+                    if(documentSnapshot != null && documentSnapshot.exists()){
+                        Log.i("TAG", "DocumentSnapshot exist and its not null")
+                        val current = documentSnapshot.get("current") //current = trenutan broj igraca u sobi, ceka se max broj da bi poceli game
+                        Log.i("TAG", "Current is: $current")
+                        if(current != null){
+
+                            val playerField = "player2"+currentFromMain //tacna vrednost igraca iz maina mi treba ne koja je soba!! Popraviti u Main! i ovo je samo za drugu rundu, treca nece biti okey.
+                            currentSend = currentFromMain
+
+                            if(current == numberOfPlayers){ // poslednji player je usao u sobu
+
+                                if(currentFromMain.toInt() % 2 == 0){
+                                    playerFirstOrSecond = "second"
+                                }else{
+                                    playerFirstOrSecond = "first"
+                                }
+                                firstRoomRefDoc.update(playerField, playerName, "status2", "full") //game pocinje
+                            }else{
+
+                                val nextCurrent = (current as Int + 1).toString()
+                                if(currentFromMain.toInt() % 2 == 0){
+                                    playerFirstOrSecond = "second"
+                                }else{
+                                    playerFirstOrSecond = "first"
+                                }
+                                firstRoomRefDoc.update(playerField, playerName, "current", nextCurrent)
+
+                            }
+                        }else{
+                            Log.i("TAG", "Current in StartActivity from Main is null.")
+                        }
+                    }else{
+                        Log.i("TAG", "Document snapshot doesnt exist or it is null.")
+                    }
+                }
+            }.addOnFailureListener {
+                Log.i("TAG", "Failed getting docuemnt from firebase: $it")
+            }
     }
 
 }
