@@ -14,7 +14,8 @@ class GroupTournament {
         playerName: String,
         roomGroupTour: CollectionReference,
         numberOfPlayers: String,
-        roomPlayerData: HashMap<String, String>
+        roomPlayerData: HashMap<String, String>,
+        listenerToStatus: ListenerToStatus,
     ) {
         val query = roomGroupTour.whereEqualTo("status", "open").get()
             .addOnSuccessListener { documentListener ->
@@ -28,14 +29,14 @@ class GroupTournament {
                             Log.d("TAG", "Room created with ID: ${firstRoomRefId}")
                             roomGroupTour.document(firstRoomRefId)
                                 .update("player1", playerName, "current", "2")
-                            //listeningToStatus()
+                            //calling listener
+                            listenerToStatus.listeningToStatusFromFB(roomGroupTour.document(firstRoomRefId), "status", playerFirstOrSecond, playerName, currentSend)
 
                         }.addOnFailureListener {
                             Log.e("TAG", "Error creating room tournament first call.")
                         }
                 }else{
                     firstRoomRefId = documentListener.first().id  //Getting id as joining user.
-                    //listeningToStatus()
 
                     val firstRoomRefDoc = roomGroupTour.document(firstRoomRefId)
                     Log.i("TAG", "firstRoomRefDoc is: $firstRoomRefDoc")
@@ -47,12 +48,12 @@ class GroupTournament {
                                 val documentSnapshot = task.result
                                 if(documentSnapshot != null && documentSnapshot.exists()){
                                     Log.i("TAG", "DocumentSnapshot exist and its not null")
-                                    val current = documentSnapshot.get("current") //current = trenutan broj igraca u sobi, ceka se max broj da bi poceli game
+                                    val current: String = documentSnapshot.get("current").toString() //current = trenutan broj igraca u sobi, ceka se max broj da bi poceli game
                                     Log.i("TAG", "Current is: $current")
                                     if(current != null){
 
                                         val playerField = "player$current"
-                                        currentSend = current.toString() //Ovu vrednost saljemo u MainActivity
+                                        currentSend = current//Ovu vrednost saljemo u MainActivity
 
                                         if(current == numberOfPlayers){ //last player in tournament
 
@@ -60,14 +61,17 @@ class GroupTournament {
                                             firstRoomRefDoc.update(playerField, playerName, "status", "close") //now it will start function listeningTosTATUS
                                         }else{
 
-                                            val nextCurrent = (current as Int + 1).toString()
-                                            if(current % 2 == 0){
+                                            val nextCurrent = (current.toInt() + 1).toString()
+                                            if(current.toInt() % 2 == 0){
                                                 playerFirstOrSecond = "second"
                                             }else{
                                                 playerFirstOrSecond = "first"
                                             }
                                             firstRoomRefDoc.update("current", nextCurrent, playerField, playerName)
                                         }
+                                        //calling listener
+                                        Log.i("TAG", "Function listening should be called now!")
+                                        listenerToStatus.listeningToStatusFromFB(firstRoomRefDoc, "status", playerFirstOrSecond, playerName, currentSend)
                                     }else {
                                         // Handle the case when the "current" parameter is not found
                                         println("The current player is null from Firebase")
@@ -91,10 +95,10 @@ class GroupTournament {
         playerName: String,
         firstRoomRefDoc: DocumentReference,
         numberOfPlayers: String,
-        currentFromMain: String
+        currentFromMain: String,
+        listenerToStatus: ListenerToStatus,
     ){
 
-        //listeningToStatus()
         firstRoomRefDoc.get() //izvlacenje vrijednosti current iz firebase da bismo znali koji je igrac po redu
             .addOnCompleteListener { task ->
                 if(task.isSuccessful){
@@ -102,7 +106,7 @@ class GroupTournament {
                     val documentSnapshot = task.result
                     if(documentSnapshot != null && documentSnapshot.exists()){
                         Log.i("TAG", "DocumentSnapshot exist and its not null")
-                        val current = documentSnapshot.get("current") //current = trenutan broj igraca u sobi, ceka se max broj da bi poceli game
+                        val current: String = documentSnapshot.get("current").toString() //current = trenutan broj igraca u sobi, ceka se max broj da bi poceli game
                         Log.i("TAG", "Current is: $current")
                         if(current != null){
 
@@ -119,7 +123,7 @@ class GroupTournament {
                                 firstRoomRefDoc.update(playerField, playerName, "status2", "close") //game pocinje
                             }else{
 
-                                val nextCurrent = (current as Int + 1).toString()
+                                val nextCurrent = (current.toInt() + 1).toString()
                                 if(currentFromMain.toInt() % 2 == 0){
                                     playerFirstOrSecond = "second"
                                 }else{
@@ -128,6 +132,8 @@ class GroupTournament {
                                 firstRoomRefDoc.update(playerField, playerName, "current", nextCurrent)
 
                             }
+                            //calling listener
+                            listenerToStatus.listeningToStatusFromFB(firstRoomRefDoc, "status2", playerFirstOrSecond, playerName, currentSend)
                         }else{
                             Log.i("TAG", "Current in StartActivity from Main is null.")
                         }

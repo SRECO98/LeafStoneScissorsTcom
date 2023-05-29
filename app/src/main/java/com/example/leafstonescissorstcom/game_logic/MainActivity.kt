@@ -39,8 +39,8 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private lateinit var timer: CountDownTimer
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private lateinit var roomsChooseRef: DocumentReference
-    private lateinit var roomsRefCompGroup: DocumentReference
-    private lateinit var roomsRefScoreFromStartActivity: DocumentReference
+    private lateinit var secondRoomRefDoc: DocumentReference
+    private lateinit var firstRoomRefDoc: DocumentReference
 
     var playerChoose = "0"
     private lateinit var textViewPlayerOneScore: TextView
@@ -58,8 +58,8 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private var player2Email: String? = ""
     private var player1Tokens: String? = ""
     private var player2Tokens: String? = ""
-    private var documentPath: String? = ""
-    private var documentPathScore: String? = ""
+    private var documentSecondRoomRefDoc: String? = ""
+    private var documentFirstRoomRefDoc: String? = ""
     private var currentPlayerField: String = ""
     private var player1TokensAfterGame: Int = 0
     private var player2TokensAfterGame: Int = 0
@@ -103,12 +103,12 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         val textViewTimer: TextView = findViewById(R.id.textViewTimer)
 
         //getting reference to score of player and name of players in firebase
-        documentPathScore = intent.getStringExtra("score_ref")!!  //getting document from StartActivity
-        roomsRefScoreFromStartActivity = FirebaseFirestore.getInstance().document(documentPathScore!!) //finding real ref by documentPath
+        documentFirstRoomRefDoc = intent.getStringExtra("score_ref")!!  //getting document from StartActivity
+        firstRoomRefDoc = FirebaseFirestore.getInstance().document(documentFirstRoomRefDoc!!) //finding real ref by documentPath
 
         //reference of game logic in firebase
-        documentPath = intent.getStringExtra("roomsRef")!!
-        roomsRefCompGroup = FirebaseFirestore.getInstance().document(documentPath!!)
+        documentSecondRoomRefDoc = intent.getStringExtra("roomsRef")!!
+        secondRoomRefDoc = FirebaseFirestore.getInstance().document(documentSecondRoomRefDoc!!)
         kindOfGame = intent.getStringExtra("kindOfGame")
 
         player1Name = intent.getStringExtra("player1Name")
@@ -126,7 +126,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         if(kindOfGame == "solo"){
             firebaseMethods.createNewHasMapStore(roomsChooseRef)
         }else if(kindOfGame == "group"){
-            firebaseMethods.createNewHasMapStore(roomsRefCompGroup)
+            firebaseMethods.createNewHasMapStore(secondRoomRefDoc)
         }
         if(player == 1)
             firebaseTotalWinLose.gettingTotalWinsAndTotalLosesFromFirebase(db.collection("nameOfUsers").document(player1Email!!),
@@ -173,7 +173,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                         if(kindOfGame == "solo")
                             firebaseMethods.saveChoose(player, playerChoose, roomsChooseRef)
                         else
-                            firebaseMethods.saveChoose(player, playerChoose, roomsRefCompGroup)
+                            firebaseMethods.saveChoose(player, playerChoose, secondRoomRefDoc)
                     }catch (e: Exception){
                         Log.i("TAG", "exception global scope coroutine: $e")
                     }
@@ -235,7 +235,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                         if(kindOfGame == "solo"){  //saving picks in firebase
                             firebaseMethods.saveChoose(player, playerChoose, roomsChooseRef)
                         }else{
-                            firebaseMethods.saveChoose(player, playerChoose, roomsRefCompGroup)
+                            firebaseMethods.saveChoose(player, playerChoose, secondRoomRefDoc)
                         }
                         startDelay(player, roomsChooseRef) //getting data 1 sec after
                         buttonGo.isEnabled = false //turn off buttons because user checked his choice
@@ -275,17 +275,18 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
 
 
                         val updateScore = UpdateScore()
+                        updateScore.updateStatus2AndCurrent(firstRoomRefDoc)
                         val current = ( currentPlayerField.toInt() + 1 ) / 2
                         if(player == 1){
 
                             if(currentValuePlayerOne == NUMBER_OF_ROUNDS){
                                 beginStartActivity(context, player1Name!!, player1Email!!, player1Tokens!!, current)
                                 //add 1 to score field and name for next table
-                                updateScore.updateScoreFromTableInFB("1", "score"+currentPlayerField, roomsRefScoreFromStartActivity) //jos prepraviti kada se upisuje za player21 itd..
-                                updateScore.updateNamesFromTableInFB(player1Name!!, "player2"+current.toString(), roomsRefScoreFromStartActivity)
+                                updateScore.updateScoreFromTableInFB("1", "score"+currentPlayerField, firstRoomRefDoc) //jos prepraviti kada se upisuje za player21 itd..
+                                updateScore.updateNamesFromTableInFB(player1Name!!, "player2"+current.toString(), firstRoomRefDoc)
                             }else{
                                 //add 0 to score field
-                                updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, roomsRefScoreFromStartActivity)
+                                updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, firstRoomRefDoc)
                                 //call dialog lost tournament
                             }
 
@@ -294,11 +295,11 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                             if (currentValuePlayerTwo == NUMBER_OF_ROUNDS){
                                 beginStartActivity(context, player1Name!!, player2Email!!, player2Tokens!!, current)
                                 //add 1 to score field and name for next table
-                                updateScore.updateScoreFromTableInFB("1", "score"+currentPlayerField, roomsRefScoreFromStartActivity)
-                                updateScore.updateNamesFromTableInFB(player2Name!!, "player2"+current.toString(), roomsRefScoreFromStartActivity)
+                                updateScore.updateScoreFromTableInFB("1", "score"+currentPlayerField, firstRoomRefDoc)
+                                updateScore.updateNamesFromTableInFB(player2Name!!, "player2"+current.toString(), firstRoomRefDoc)
                             }else{
                                 //add 0 to score field
-                                updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, roomsRefScoreFromStartActivity)
+                                updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, firstRoomRefDoc)
                                 //call dialog lost tournament
                             }
 
@@ -316,7 +317,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         val intent = Intent(context, StartActivity::class.java).apply {
             putExtra("skip_once", "false")
             putExtra("current", current.toString())
-            putExtra("roomsRef", documentPath)
+            putExtra("roomsRef", documentFirstRoomRefDoc)
             putExtra("name", playerName)
             putExtra("email", playerEmail)
             putExtra("tokens", playerToken) //???
@@ -330,7 +331,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
             if(kindOfGame == "solo"){
                 firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsChooseRef)
             }else{
-                firebaseMethods.loadChoose(player = player, roomsChooseRef = roomsRefCompGroup)
+                firebaseMethods.loadChoose(player = player, roomsChooseRef = secondRoomRefDoc)
             }
         }, delayMillis)
     }

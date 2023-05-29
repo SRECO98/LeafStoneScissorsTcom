@@ -3,10 +3,7 @@ package com.example.leafstonescissorstcom.game_logic.matching_users
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
@@ -19,11 +16,13 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
-class StartActivity : AppCompatActivity() {
+class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
 
     private val NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = "4"
     private var playerFirstOrSecond = ""
     private lateinit var buttonStatsTournament: AppCompatButton
+    private lateinit var listenerToStatus: ListenerToStatus
+    val groupTournament: GroupTournament = GroupTournament()
 
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private var roomData = hashMapOf("player1" to "value", "player2" to "Value2", "status" to "default")
@@ -48,7 +47,7 @@ class StartActivity : AppCompatActivity() {
     private lateinit var textViewTokens: TextView
     private lateinit var textViewConnecting: TextView
     private lateinit var roomsRefFromMain: DocumentReference
-    private lateinit var roomsRefScoreState: DocumentReference
+    private lateinit var firstRoomRefDoc: DocumentReference
     private lateinit var collectionReference: CollectionReference
     var playerEmail = ""
     var playerTokens = ""
@@ -58,6 +57,9 @@ class StartActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_start)
+
+        listenerToStatus = ListenerToStatus()
+        listenerToStatus.setMatchmakeTwoPlayersListener(this)
 
         buttonStatsTournament = findViewById(R.id.buttonStatsTournament)
         val buttonStartGame = findViewById<AppCompatButton>(R.id.buttonStart1v1)
@@ -90,7 +92,12 @@ class StartActivity : AppCompatActivity() {
                 val documentPath = intent.getStringExtra("roomsRef")!!
                 roomsRefFromMain = FirebaseFirestore.getInstance().document(documentPath)
                 Log.i("TAG", "Room id score: $roomIdOfScoreTable")
-                buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, true)
+                textViewConnecting.text = "Waiting for other players to finish their game."
+                textViewConnecting.isVisible = true
+                buttonStatsTournament.isVisible = true
+                buttonStartGame.isEnabled = false
+                buttonStartGameGroupComp.isEnabled = false
+                groupTournament.buttonTourGameSecondOpen(playerName, roomsRefFromMain, NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, currentFromMain, listenerToStatus)
             }
         }
 
@@ -98,20 +105,24 @@ class StartActivity : AppCompatActivity() {
         buttonStartGame.setOnClickListener {
             matchmake(playerName, db.collection("rooms"))
             buttonStartGame.isEnabled = false
+            buttonStartGameGroupComp.isEnabled = false
             buttonStartGame.setBackgroundColor(Color.argb(255, 169, 169, 169))
             textViewWaiting.isVisible = true
         }
 
         //Button start group game:
         buttonStartGameGroupComp.setOnClickListener {
-            buttonCompGame(playerName, buttonStartGameGroupComp, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, true)
+            textViewConnecting.isVisible = true
+            buttonStartGame.isEnabled = false
+            buttonStartGameGroupComp.isEnabled = false
+            groupTournament.buttonTourGameFirstOpen(playerName, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, roomPlayerData, listenerToStatus)
         }
 
         //score table
         collectionReference = db.collection("groupRooms")
         buttonStatsTournament.setOnClickListener {
             val intent = Intent(this, TourScoreTable::class.java).apply {
-                putExtra("room_ref", roomsRefScoreState.path)
+                putExtra("room_ref", firstRoomRefDoc.path)
             }
             startActivity(intent)
         }
@@ -189,7 +200,7 @@ class StartActivity : AppCompatActivity() {
 
             if(kindOfGame != "solo"){ //if game is solo 1v1 then skip removing register cause its not initialized.
                 Log.i("TAG", "delete register")
-                register2.remove()
+                //register2.remove()
             }
             roomsRef.update(roomData as Map<String, Any>)
                 .addOnSuccessListener {
@@ -207,7 +218,7 @@ class StartActivity : AppCompatActivity() {
                     intent.putExtra("kindOfGame", kindOfGame)
                     intent.putExtra("roomsRef", roomsRef.path)
                     intent.putExtra("current", currentSend)
-                    intent.putExtra("score_ref", roomsRefScoreState.path)
+                    intent.putExtra("score_ref", firstRoomRefDoc.path)
                     startActivity(intent)
                     finish()
                 }
@@ -241,7 +252,7 @@ class StartActivity : AppCompatActivity() {
         Log.i("TAG", "delete register: ${kindOfGame}")
         if(kindOfGame != "solo"){ //if game is solo 1v1 then skip removing register cause its not initialized.
             Log.i("TAG", "delete register")
-            register2.remove()
+            //register2.remove()
         }
         Log.i("TAG", "Player emails 1: $player1Email")
         Log.i("TAG" ,"Player emails 2: $player2EmailFromFB")
@@ -257,7 +268,7 @@ class StartActivity : AppCompatActivity() {
             putExtra("kindOfGame", kindOfGame)
             putExtra("roomsRef", roomsRef.path)
             putExtra("current", currentSend)
-            putExtra("score_ref", roomsRefScoreState.path)
+            putExtra("score_ref", firstRoomRefDoc.path)
             Log.i("TAG4", "vALUE OF PLAYER 1 NAME $playerName")
             Log.i("TAG4", "vALUE OF PLAYER 2 NAME $player2NameFromFB")
         }
@@ -266,193 +277,27 @@ class StartActivity : AppCompatActivity() {
     }
 
     /* LOGIC FOR SECOND BUTTON "START GROUP COMP" ******************************************************************************************************************************/
-    var roomIdCompGroup: String = ""
     var roomIdOfScoreTable: String = ""
-    var changeOnlyOnce = true
     var currentSend: String = ""
-    private fun buttonCompGame(playerName: String, buttonStartGameGroupComp: AppCompatButton, roomGroupComp: CollectionReference, numberOfPlayers: String, openFromMainOrNot: Boolean){
-        buttonStatsTournament.visibility = View.VISIBLE
-        textViewConnecting.isVisible = true
-        buttonStartGameGroupComp.isEnabled = false
-        buttonStartGameGroupComp.setBackgroundColor(Color.argb(255, 169, 169, 169))
 
-        val query = roomGroupComp.whereEqualTo("status", "open").get()
-            .addOnSuccessListener { documentListener ->
-                if(documentListener.isEmpty){
-
-                    var player1 = ""
-                    roomGroupComp.add(roomPlayerData)
-                        .addOnCompleteListener { documentReference ->  //first round
-                            roomIdCompGroup = documentReference.result.id
-                            if(changeOnlyOnce){
-                                roomIdOfScoreTable = roomIdCompGroup
-                                roomsRefScoreState = collectionReference.document(roomIdOfScoreTable)
-                                changeOnlyOnce = false
-                            }
-                            if(openFromMainOrNot){ //done
-                                playerFirstOrSecond = "first"
-                                currentSend = "1"
-                                player1 = "player1"
-                            }else{
-                                player1 = "player" + currentFromMain
-                                Log.i("TAG", "Player1111: $player1, $currentFromMain")
-                                currentSend = currentFromMain
-                                if( (currentFromMain.toInt() % 2) == 0)
-                                    playerFirstOrSecond = "second"
-                                else
-                                    playerFirstOrSecond = "first"
-                            }
-
-                            Log.d("TAG", "Room created with ID: ${documentReference.result.id}")
-                            roomGroupComp.document(roomIdCompGroup).update(player1, playerName, "current", "2")
-                            listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomIdCompGroup), roomGroupComp) //listening to value status to know when to start a game.
-                        }
-                        .addOnFailureListener { exception ->
-                            Log.e("TAG", "Error creating room: ", exception)
-                        }
-                }else{
-                    val room = documentListener.first()
-                    val roomId = room.id
-                    roomIdCompGroup = roomId
-                    if(changeOnlyOnce){
-                        roomIdOfScoreTable = roomIdCompGroup
-                        roomsRefScoreState = collectionReference.document(roomIdOfScoreTable)
-                        changeOnlyOnce = false
-                    }
-
-                    listeningToStatusCompGame(roomsRef = roomGroupComp.document(roomId), roomGroupComp) //listening to value status to know when to start a game.
-
-                    val roomRef = roomGroupComp.document(roomId)
-                    Log.i("TAG", "Id is: $roomId")
-                    roomRef.get().addOnCompleteListener{ task ->
-                        if (task.isSuccessful) {
-                            Log.i("TAG", "Task is succesful!")
-                            val documentSnapshot = task.result
-                            if (documentSnapshot != null && documentSnapshot.exists()) {
-                                Log.i("TAG", "DocumentSnapshot exist and its not null")
-                                val current = documentSnapshot.get("current")
-                                Log.i("TAG", "Current is: $current")
-                                if (current != null) {
-                                    // Use the current value
-                                    if(current == numberOfPlayers){ // last round
-
-                                        var newPlayerString = ""
-                                        val game: String = current as String
-                                        val newValueGame = (game.toInt() + 1).toString()
-                                        if(openFromMainOrNot){
-                                            currentSend = numberOfPlayers
-                                            if(game.toInt() % 2 == 0){ //setting player place for game 1v1
-                                                playerFirstOrSecond = "second"
-                                            }else{
-                                                playerFirstOrSecond = "first"
-                                            }
-                                            newPlayerString = "player$game"
-                                        }else{
-                                            currentSend = currentFromMain
-                                            if(currentFromMain.toInt() % 2 == 0){
-                                                playerFirstOrSecond = "second"
-                                            }else{
-                                                playerFirstOrSecond = "first"
-                                            }
-                                            newPlayerString = "player$currentFromMain"
-                                        }
-
-                                        roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName, "status", "close") //important
-                                    }else{
-
-                                        var newPlayerString = ""
-                                        val game: String = current as String
-                                        val newValueGame = (game.toInt() + 1).toString()
-                                        if(openFromMainOrNot){
-                                            if(game.toInt() % 2 == 0){
-                                                playerFirstOrSecond = "second"
-                                            }else{
-                                                playerFirstOrSecond = "first"
-                                            }
-                                            newPlayerString = "player${ (game.toInt())}"
-                                            currentSend = game
-                                        }else{
-                                            currentSend = currentFromMain
-                                            if(currentFromMain.toInt() % 2 == 0){
-                                                playerFirstOrSecond = "second"
-                                            }else{
-                                                playerFirstOrSecond = "first"
-                                            }
-                                            newPlayerString = "player${currentFromMain}"
-                                        }
-
-                                        roomGroupComp.document(roomId).update("current", newValueGame, newPlayerString, playerName)
-                                    }
-                                } else {
-                                    // Handle the case when the "current" parameter is not found
-                                    println("The current player is not available")
-                                }
-                            } else {
-                                // Handle the case when the document doesn't exist
-                                println("The document doesn't exist")
-                            }
-                        } else {
-                            // Handle any errors that occurred during the operation
-                            val exception = task.exception
-                            println("Error getting document: ${exception?.message}")
-                        }
-                    }
-                }
-            }
+    override fun callCreateRoom(playerName: String, secondRoomGroupTour: CollectionReference, typeOfGame: String) {
+        Log.i("TAG", "Function createRoom called.")
+        createRoom(playerName = playerName, roomsRef = secondRoomGroupTour, kindOfGame = typeOfGame)
     }
 
-    private lateinit var register2: ListenerRegistration
-
-    private fun listeningToStatusCompGame(roomsRef: DocumentReference, collection: CollectionReference){
-        register2 = roomsRef.addSnapshotListener { value, _ -> //live follow data change in firebase
-            val statusOfRoom = value?.getString("status")!!
-            Log.i("TAG", "Listening triggered2")
-            if (statusOfRoom == "close") {
-                //start activity (but first find how to pair players in games 1v1)
-                if(playerFirstOrSecond == "first"){
-                    matchmakeForCompGroup(playerName, roomsRef = collection.document(roomIdCompGroup).collection("games"), playerCheck = 1)
-                    textViewConnecting.text = "Connecting ..."
-                    textViewConnecting.isVisible = true
-                }else if(playerFirstOrSecond == "second"){
-                    textViewConnecting.text = "Connecting ..."
-                    textViewConnecting.isVisible = true
-                    startDelay(collection)
-                }
-            }
-        }
-    }
-    private val delayMillis: Long = 3000 // 3 seconds delay, we are waiting for firebase to make a rooms and it can start with a game.
-    private fun startDelay(collection: CollectionReference) {
-        Handler(Looper.getMainLooper()).postDelayed({
-            textViewConnecting.isVisible = false
-            Log.i("TAG", "Id dokumentra: $roomIdCompGroup")
-            Log.i("TAG", "Id dokumentra: $roomIdCompGroup")
-            matchmakeForCompGroup(playerName = playerName, roomsRef = collection.document(roomIdCompGroup).collection("games"), playerCheck = 2)
-            // This code will run after the specified delay
-            // Perform your task here
-        }, delayMillis)
+    override fun callJoinRoom(secondRoomRedId: String, playerName: String, secondRoomRefDoc: DocumentReference, typeOfGame: String) {
+        Log.i("TAG", "Function joinRoom called.")
+        joinRoom(secondRoomRedId, 2, playerName, secondRoomRefDoc, typeOfGame)
     }
 
-    private fun matchmakeForCompGroup(playerName: String, roomsRef: CollectionReference, playerCheck: Int = 1) { // promjeniti da se prima refereca!
-        val query = roomsRef.whereEqualTo("status", "open").limit(1)
-        query.get()
-            .addOnSuccessListener { documents ->
-                if (playerCheck == 1){
-                    // No open rooms found, create a new room
-                    createRoom(playerName = playerName, roomsRef = roomsRef, "group")
-                    Log.i("TAG", "Document is:" + documents.isEmpty.toString())
-                } else if(playerCheck == 2) {
-                    // Found an open room, join the room
-                    val room = documents.first()
-                    val roomId = room.id
-
-                    Log.i("TAG", "Id dokumentra pre joinRoom: $roomIdCompGroup")
-                    Log.i("TAG", "Id dokumentra pre joinRoom: $roomId")
-                    joinRoom(roomId, 2, playerName, roomsRef.document(roomId), "group") //not good ID cuz second player never entered creatingRoom, need to put it in firebase and read
-                }
-            }.addOnFailureListener { exception ->
-                Log.e("TAG", "Error getting open rooms: ", exception)
-            }
+    override fun getFirstRoomRefDoc(firstRoomRefDoc: DocumentReference, currentSend: String) { //update vrednosti u StartActivity koje dobijamo u HelperKlasi
+        this.firstRoomRefDoc = firstRoomRefDoc
+        this.currentSend = currentSend
     }
-    /*A***********************************************************************************************************************************************************************************/
+
+    override fun updateTextViewConnecting(boolean: Boolean, text: String) {
+        textViewConnecting.text = text
+        textViewConnecting.isVisible = boolean
+    }
+    /*A*************************************************************************************************************************************************/
 }
