@@ -48,7 +48,6 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
     private lateinit var textViewConnecting: TextView
     private lateinit var roomsRefFromMain: DocumentReference
     private lateinit var firstRoomRefDoc: DocumentReference
-    private lateinit var collectionReference: CollectionReference
     var playerEmail = ""
     var playerTokens = ""
     var playerName = ""
@@ -119,7 +118,6 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
         }
 
         //score table
-        collectionReference = db.collection("groupRooms")
         buttonStatsTournament.setOnClickListener {
             val intent = Intent(this, TourScoreTable::class.java).apply {
                 putExtra("room_ref", firstRoomRefDoc.path)
@@ -149,24 +147,36 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
     }
 
 
-    private fun createRoom(playerName: String, roomsRef: CollectionReference, kindOfGame: String) {
+    private fun createRoom(playerName: String, roomsRef: CollectionReference, typeOfGame: String, statusValue: String = "") {
 
-        roomData = hashMapOf(
-            "player1" to playerName,
-            "player2" to "unknown",
-            "player1Email" to playerEmail,
-            "player2Email" to "unknown",
-            "player1Tokens" to playerTokens,
-            "player2Tokens" to "unknown",
-            "status" to "open",
-        )
-        Log.i("TAG", "roomData: $roomData")
+        if(typeOfGame == "solo"){
+            roomData = hashMapOf(
+                "player1" to playerName,
+                "player2" to "unknown",
+                "player1Email" to playerEmail,
+                "player2Email" to "unknown",
+                "player1Tokens" to playerTokens,
+                "player2Tokens" to "unknown",
+                "status" to "open",
+            )
+        }else if(typeOfGame == "group"){
+            roomData = hashMapOf(
+                "player1" to playerName,
+                "player2" to "unknown",
+                "player1Email" to playerEmail,
+                "player2Email" to "unknown",
+                "player1Tokens" to playerTokens,
+                "player2Tokens" to "unknown",
+                "status" to statusValue,
+            )
+        }
+
 
         roomsRef.add(roomData)
             .addOnSuccessListener { documentReference ->
                 Log.d("TAG", "Room created with ID: ${documentReference.id}")
                 // Join the room as the first player
-                joinRoom(documentReference.id, player = 1, playerName, roomsRef = roomsRef.document(documentReference.id), kindOfGame = kindOfGame)
+                joinRoom(documentReference.id, player = 1, playerName, roomsRef = roomsRef.document(documentReference.id), kindOfGame = typeOfGame)
             }
             .addOnFailureListener { exception ->
                 Log.e("TAG", "Error creating room: ", exception)
@@ -280,9 +290,9 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
     var roomIdOfScoreTable: String = ""
     var currentSend: String = ""
 
-    override fun callCreateRoom(playerName: String, secondRoomGroupTour: CollectionReference, typeOfGame: String) {
+    override fun callCreateRoom(playerName: String, secondRoomGroupTour: CollectionReference, typeOfGame: String, statusValue: String) {
         Log.i("TAG", "Function createRoom called.")
-        createRoom(playerName = playerName, roomsRef = secondRoomGroupTour, kindOfGame = typeOfGame)
+        createRoom(playerName = playerName, roomsRef = secondRoomGroupTour, typeOfGame = typeOfGame, statusValue)
     }
 
     override fun callJoinRoom(secondRoomRedId: String, playerName: String, secondRoomRefDoc: DocumentReference, typeOfGame: String) {

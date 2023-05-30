@@ -10,7 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 class TourScoreTable : AppCompatActivity(), GetDataFromFirebase.UpdateScoreTable {
 
     private lateinit var getDataFromFirebase: GetDataFromFirebase
-    private lateinit var roomsRefFromStartActivity: DocumentReference
+    private lateinit var firstRoomRefDoc: DocumentReference
 
     private lateinit var textViewPlayer1: TextView
     private lateinit var textViewPlayer2: TextView
@@ -27,16 +27,31 @@ class TourScoreTable : AppCompatActivity(), GetDataFromFirebase.UpdateScoreTable
     private lateinit var textViewPlayer31: TextView
     private lateinit var textViewPlayer32: TextView
 
+    private lateinit var textViewScore1: TextView
+    private lateinit var textViewScore2: TextView
+    private lateinit var textViewScore3: TextView
+    private lateinit var textViewScore4: TextView
+    private lateinit var textViewScore5: TextView
+    private lateinit var textViewScore6: TextView
+    private lateinit var textViewScore7: TextView
+    private lateinit var textViewScore8: TextView
+    private lateinit var textViewScore21: TextView
+    private lateinit var textViewScore22: TextView
+    private lateinit var textViewScore23: TextView
+    private lateinit var textViewScore24: TextView
+    private lateinit var textViewScore31: TextView
+    private lateinit var textViewScore32: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tour_score_table)
 
         val documentPath = intent.getStringExtra("room_ref")!!  //getting document from StartActivity
-        roomsRefFromStartActivity = FirebaseFirestore.getInstance().document(documentPath) //finding real ref by documentPath
+        firstRoomRefDoc = FirebaseFirestore.getInstance().document(documentPath) //finding real ref by documentPath
 
         getDataFromFirebase = GetDataFromFirebase()
         getDataFromFirebase.setUpdateScoreTableListener(this)
-        getDataFromFirebase.getDataFromFB(roomsRefFromStartActivity)
+        getDataFromFirebase.getDataFromFB(firstRoomRefDoc)
 
         textViewPlayer1 = findViewById(R.id.textViewPlayer1)
         textViewPlayer2 = findViewById(R.id.textViewPlayer2)
@@ -54,6 +69,23 @@ class TourScoreTable : AppCompatActivity(), GetDataFromFirebase.UpdateScoreTable
 
         textViewPlayer31 = findViewById(R.id.textViewPlayer31)
         textViewPlayer32 = findViewById(R.id.textViewPlayer32)
+
+        textViewScore1 = findViewById(R.id.textViewPlayer1Score)
+        textViewScore2 = findViewById(R.id.textViewPlayer2Score)
+        textViewScore3 = findViewById(R.id.textViewPlayer3Score)
+        textViewScore4 = findViewById(R.id.textViewPlayer4Score)
+        textViewScore5 = findViewById(R.id.textViewPlayer5Score)
+        textViewScore6 = findViewById(R.id.textViewPlayer6Score)
+        textViewScore7 = findViewById(R.id.textViewPlayer7Score)
+        textViewScore8 = findViewById(R.id.textViewPlayer8Score)
+
+        textViewScore21 = findViewById(R.id.textViewPlayer21Score)
+        textViewScore22 = findViewById(R.id.textViewPlayer22Score)
+        textViewScore23 = findViewById(R.id.textViewPlayer23Score)
+        textViewScore24 = findViewById(R.id.textViewPlayer24Score)
+
+        textViewScore31 = findViewById(R.id.textViewPlayer31Score)
+        textViewScore32 = findViewById(R.id.textViewPlayer32Score)
     }
 
     override fun updateScoreTable(
@@ -82,6 +114,25 @@ class TourScoreTable : AppCompatActivity(), GetDataFromFirebase.UpdateScoreTable
 
         textViewPlayer31.text = player31
         textViewPlayer32.text = player32
+
+
+
+        textViewScore1.text = score1
+        textViewScore2.text = score2
+        textViewScore3.text = score3
+        textViewScore4.text = score4
+        textViewScore5.text = score5
+        textViewScore6.text = score6
+        textViewScore7.text = score7
+        textViewScore8.text = score8
+
+        textViewScore21.text = score21
+        textViewScore22.text = score22
+        textViewScore23.text = score23
+        textViewScore24.text = score24
+
+        textViewScore31.text = score31
+        textViewScore32.text = score32
     }
 
     override fun onPause() {

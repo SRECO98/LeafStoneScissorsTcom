@@ -302,9 +302,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                                 updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, firstRoomRefDoc)
                                 //call dialog lost tournament
                             }
-
                         }
-
                     }
                 }
             }
