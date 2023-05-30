@@ -19,30 +19,12 @@ import com.google.firebase.firestore.ListenerRegistration
 class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
 
     private val NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = "4"
-    private var playerFirstOrSecond = ""
     private lateinit var buttonStatsTournament: AppCompatButton
     private lateinit var listenerToStatus: ListenerToStatus
     val groupTournament: GroupTournament = GroupTournament()
 
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private var roomData = hashMapOf("player1" to "value", "player2" to "Value2", "status" to "default")
-    //Those are fields for firebase, in those fields we will remember who passed to the next stage of tournament
-    private var roomPlayerData = hashMapOf(
-        //osmina
-        "player1" to "value", "player2" to "value", "player3" to "value", "player4" to "value",
-        "player5" to "value", "player6" to "value", "player7" to "value", "player8" to "value",
-        //cetvrt finale
-        "player21" to "value", "player22" to "value", "player23" to "value", "player24" to "value",
-        //finale                                            //Ovo je potrebno radi logike.
-        "player31" to "value", "player32" to "value",      "current" to "1", "status" to "open",
-        //osmina score
-        "score1" to "-", "score2" to "-", "score3" to "-", "score4" to "-",
-        "score5" to "-", "score6" to "-", "score7" to "-", "score8" to "-",
-        //cetvrtina score
-        "score21" to "-", "score22" to "-", "score23" to "-", "score24" to "-",
-        //finale score
-        "score31" to "-", "score32" to "-",
-        )
     private lateinit var textViewWaiting: TextView
     private lateinit var textViewTokens: TextView
     private lateinit var textViewConnecting: TextView
@@ -114,7 +96,7 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
             textViewConnecting.isVisible = true
             buttonStartGame.isEnabled = false
             buttonStartGameGroupComp.isEnabled = false
-            groupTournament.buttonTourGameFirstOpen(playerName, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, roomPlayerData, listenerToStatus)
+            groupTournament.buttonTourGameFirstOpen(playerName, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, listenerToStatus)
         }
 
         //score table
@@ -146,7 +128,6 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
             }
     }
 
-
     private fun createRoom(playerName: String, roomsRef: CollectionReference, typeOfGame: String, statusValue: String = "") {
 
         if(typeOfGame == "solo"){
@@ -170,7 +151,6 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
                 "status" to statusValue,
             )
         }
-
 
         roomsRef.add(roomData)
             .addOnSuccessListener { documentReference ->

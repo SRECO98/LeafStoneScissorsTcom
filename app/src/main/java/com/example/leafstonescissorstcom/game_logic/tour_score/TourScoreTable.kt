@@ -70,6 +70,7 @@ class TourScoreTable : AppCompatActivity(), GetDataFromFirebase.UpdateScoreTable
         textViewPlayer31 = findViewById(R.id.textViewPlayer31)
         textViewPlayer32 = findViewById(R.id.textViewPlayer32)
 
+
         textViewScore1 = findViewById(R.id.textViewPlayer1Score)
         textViewScore2 = findViewById(R.id.textViewPlayer2Score)
         textViewScore3 = findViewById(R.id.textViewPlayer3Score)
