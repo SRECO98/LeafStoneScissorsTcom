@@ -1,8 +1,15 @@
 package com.example.leafstonescissorstcom.game_logic.matching_users
 
 import android.util.Log
+import android.widget.Toast
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class GroupTournament {
 
@@ -98,37 +105,36 @@ class GroupTournament {
         listenerToStatus: ListenerToStatus,
     ){
 
-        firstRoomRefDoc.get() //izvlacenje vrijednosti current iz firebase da bismo znali koji je igrac po redu
-            .addOnCompleteListener { task ->
-                if(task.isSuccessful){
-                    Log.i("TAG", "Task is succesful!")
-                    val documentSnapshot = task.result
-                    if(documentSnapshot != null && documentSnapshot.exists()){
-                        Log.i("TAG", "DocumentSnapshot exist and its not null")
-                        val current: String = documentSnapshot.get("current").toString() //current = trenutan broj igraca u sobi, ceka se max broj da bi poceli game
-                        Log.i("TAG", "Current is: $current")
-                        if(current != null){
-
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                Firebase.firestore.runTransaction { transaction ->
+                    val document = transaction.get(firstRoomRefDoc)
+                    val current = document["current"] as String
+                    if(current != null){
                             val playerField = "player2"+currentFromMain //tacna vrednost igraca iz maina mi treba ne koja je soba!! Popraviti u Main! i ovo je samo za drugu rundu, treca nece biti okey.
                             currentSend = currentFromMain
-
+                            Log.i("TAG", "testtesttest. numberOfPlayers is: $numberOfPlayers")
+                            Log.i("TAG", "testtesttest. current is: $current")
                             if(current == numberOfPlayers){ // poslednji player je usao u sobu
 
+                                Log.i("TAG", "testtesttest. 1")
                                 if(currentFromMain.toInt() % 2 == 0){
                                     playerFirstOrSecond = "second"
                                 }else{
                                     playerFirstOrSecond = "first"
                                 }
-                                firstRoomRefDoc.update(playerField, playerName, "status2", "close") //game pocinje
+                                transaction.update(firstRoomRefDoc, "current", (current.toInt() + 1).toString(), playerField, playerName, "status2", "close")
+                                //firstRoomRefDoc.update(playerField, playerName, "status2", "close") //game pocinje
                             }else{
-
+                                Log.i("TAG", "testtesttest. 2")
                                 val nextCurrent = (current.toInt() + 1).toString()
                                 if(currentFromMain.toInt() % 2 == 0){
                                     playerFirstOrSecond = "second"
                                 }else{
                                     playerFirstOrSecond = "first"
                                 }
-                                firstRoomRefDoc.update(playerField, playerName, "current", nextCurrent)
+                                transaction.update(firstRoomRefDoc, "current", (current.toInt() + 1).toString(), playerField, playerName)
+                                //firstRoomRefDoc.update(playerField, playerName, "current", nextCurrent)
 
                             }
                             Log.i("TAG", "Calling listener second round.")
@@ -137,13 +143,14 @@ class GroupTournament {
                         }else{
                             Log.i("TAG", "Current in StartActivity from Main is null.")
                         }
-                    }else{
-                        Log.i("TAG", "Document snapshot doesnt exist or it is null.")
+                    null
                     }
+            }catch (e: Exception){
+                withContext(Dispatchers.Main){
+                    Log.i("TAG", "Error with try block of updating current in second try: ${e.message}")
                 }
-            }.addOnFailureListener {
-                Log.i("TAG", "Failed getting docuemnt from firebase: $it")
             }
+        }
     }
 
     //Those are fields for firebase, in those fields we will remember who passed to the next stage of tournament

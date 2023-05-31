@@ -12,6 +12,7 @@ class ListenerToStatus {
 
     fun listeningToStatusFromFB(firstRoomRefDoc: DocumentReference, fieldStatus: String, playerFirstOrSecond: String, playerName: String, currentSend: String){ //"status" ili "status2"
 
+        Log.i("tag", "Listening triggered, Id: $firstRoomRefDoc")
         matchmakeTwoPlayers?.getFirstRoomRefDoc(firstRoomRefDoc, currentSend)
         register2 = firstRoomRefDoc.addSnapshotListener { value, _ ->  //find a way to remove listenr if this down remove desont work!
             val statusOfRoom = value?.getString(fieldStatus)!!

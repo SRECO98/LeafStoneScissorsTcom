@@ -28,7 +28,7 @@ class UpdateScore {
     fun updateStatus2AndCurrent(firstRoomRefDoc: DocumentReference){
         firstRoomRefDoc.update("status2", "wait", "current", "1")
             .addOnSuccessListener {
-                Log.i("TAG", "Updating names value in firebase for table is successful")
+                Log.i("TAG", "testtesttest. Updating names value in firebase for table is successful")
             }
             .addOnFailureListener {
                 Log.i("TAG", "Updating names value in firebase for table is not successful")

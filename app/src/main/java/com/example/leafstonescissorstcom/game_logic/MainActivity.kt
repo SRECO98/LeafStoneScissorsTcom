@@ -78,6 +78,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private lateinit var buttonAnalyze: AppCompatButton
     private var counterRounds: Int = 0
     var buttonChoose2 = "0"
+    var roundOfGame = ""
     private lateinit var firebaseMethods: FirebaseMethods
     private lateinit var firebaseTotalWinLose: TotalWinLose
     private var totalWins: String = "0"
@@ -118,6 +119,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         player1Tokens = intent.getStringExtra("player1Tokens")
         player2Tokens = intent.getStringExtra("player2Tokens")
         currentPlayerField = intent.getStringExtra("current")!!
+        roundOfGame = intent.getStringExtra("roundOfGame")!!
         roomId = intent.getStringExtra("room_id")!!
         val player:Int = intent.getIntExtra("player", 0)
         roomsChooseRef = db.collection("rooms").document(roomId)
@@ -273,7 +275,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
 
                     else if(kindOfGame == "group"){
 
-
+                        Log.i("TAG", "Round of game is: $roundOfGame")
                         val updateScore = UpdateScore()
                         updateScore.updateStatus2AndCurrent(firstRoomRefDoc)
                         val current = ( currentPlayerField.toInt() + 1 ) / 2
@@ -282,12 +284,21 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                             if(currentValuePlayerOne == NUMBER_OF_ROUNDS){
                                 beginStartActivity(context, player1Name!!, player1Email!!, player1Tokens!!, current)
                                 //add 1 to score field and name for next table
-                                updateScore.updateScoreFromTableInFB("1", "score"+currentPlayerField, firstRoomRefDoc) //jos prepraviti kada se upisuje za player21 itd..
-                                updateScore.updateNamesFromTableInFB(player1Name!!, "player2"+current.toString(), firstRoomRefDoc)
+                                if(roundOfGame == "1"){
+                                    updateScore.updateScoreFromTableInFB("1", "score"+currentPlayerField, firstRoomRefDoc) //jos prepraviti kada se upisuje za player21 itd..
+                                    updateScore.updateNamesFromTableInFB(player1Name!!, "player2"+current.toString(), firstRoomRefDoc)
+                                }else{
+                                    updateScore.updateScoreFromTableInFB("1", "score"+roundOfGame+currentPlayerField, firstRoomRefDoc) //jos prepraviti kada se upisuje za player21 itd..
+                                    updateScore.updateNamesFromTableInFB(player1Name!!, "player"+(roundOfGame.toInt()+1).toString()+current.toString(), firstRoomRefDoc)
+                                }
                             }else{
-                                //add 0 to score field
-                                updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, firstRoomRefDoc)
-                                //call dialog lost tournament
+                                if(roundOfGame == "1"){
+                                    //add 0 to score field
+                                    updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, firstRoomRefDoc)
+                                    //call dialog lost tournament
+                                }else{
+                                    updateScore.updateScoreFromTableInFB("0", "score"+roundOfGame+currentPlayerField, firstRoomRefDoc)
+                                }
                             }
 
                         }else if(player == 2){
@@ -295,12 +306,22 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                             if (currentValuePlayerTwo == NUMBER_OF_ROUNDS){
                                 beginStartActivity(context, player1Name!!, player2Email!!, player2Tokens!!, current)
                                 //add 1 to score field and name for next table
-                                updateScore.updateScoreFromTableInFB("1", "score"+currentPlayerField, firstRoomRefDoc)
-                                updateScore.updateNamesFromTableInFB(player2Name!!, "player2"+current.toString(), firstRoomRefDoc)
+                                if(roundOfGame == "1"){
+                                    updateScore.updateScoreFromTableInFB("1", "score"+currentPlayerField, firstRoomRefDoc)
+                                    updateScore.updateNamesFromTableInFB(player2Name!!, "player2"+current.toString(), firstRoomRefDoc)
+                                }else{
+                                    updateScore.updateScoreFromTableInFB("1", "score"+roundOfGame+currentPlayerField, firstRoomRefDoc)
+                                    updateScore.updateNamesFromTableInFB(player2Name!!, "player"+(roundOfGame.toInt()+1).toString()+current.toString(), firstRoomRefDoc)
+                                }
+
                             }else{
-                                //add 0 to score field
-                                updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, firstRoomRefDoc)
-                                //call dialog lost tournament
+                                if(roundOfGame == "1"){
+                                    //add 0 to score field
+                                    updateScore.updateScoreFromTableInFB("0", "score"+currentPlayerField, firstRoomRefDoc)
+                                    //call dialog lost tournament
+                                }else{
+                                    updateScore.updateScoreFromTableInFB("0", "score"+roundOfGame+currentPlayerField, firstRoomRefDoc)
+                                }
                             }
                         }
                     }
@@ -319,6 +340,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
             putExtra("name", playerName)
             putExtra("email", playerEmail)
             putExtra("tokens", playerToken) //???
+            putExtra("roundOfGame", (roundOfGame.toInt() + 1).toString())
         }
         startActivity(intent)
     }
