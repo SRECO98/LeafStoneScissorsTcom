@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     //2x se poziva saveChooice ako stisnemo pick
     //find a way to make a tour table (players added in first row, now add after finding who is winner and add scores after game is finished).
     private lateinit var timer: CountDownTimer
+    val updateScore = UpdateScore()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private lateinit var roomsChooseRef: DocumentReference
     private lateinit var secondRoomRefDoc: DocumentReference
@@ -51,6 +52,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
     private lateinit var buttonGo: AppCompatButton
     private lateinit var roomId: String
 
+    private var numberOfPlayers = ""
     private var kindOfGame: String? = ""
     private var player1Name: String? = ""
     private var player2Name: String? = ""
@@ -111,7 +113,6 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         documentSecondRoomRefDoc = intent.getStringExtra("roomsRef")!!
         secondRoomRefDoc = FirebaseFirestore.getInstance().document(documentSecondRoomRefDoc!!)
         kindOfGame = intent.getStringExtra("kindOfGame")
-
         player1Name = intent.getStringExtra("player1Name")
         player2Name = intent.getStringExtra("player2Name")
         player1Email = intent.getStringExtra("player1Email")
@@ -120,6 +121,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         player2Tokens = intent.getStringExtra("player2Tokens")
         currentPlayerField = intent.getStringExtra("current")!!
         roundOfGame = intent.getStringExtra("roundOfGame")!!
+        numberOfPlayers = intent.getStringExtra("numberOfPlayers")!!
         roomId = intent.getStringExtra("room_id")!!
         val player:Int = intent.getIntExtra("player", 0)
         roomsChooseRef = db.collection("rooms").document(roomId)
@@ -128,6 +130,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
         if(kindOfGame == "solo"){
             firebaseMethods.createNewHasMapStore(roomsChooseRef)
         }else if(kindOfGame == "group"){
+            updateScore.updateStatus2AndCurrent(firstRoomRefDoc)
             firebaseMethods.createNewHasMapStore(secondRoomRefDoc)
         }
         if(player == 1)
@@ -276,8 +279,6 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
                     else if(kindOfGame == "group"){
 
                         Log.i("TAG", "Round of game is: $roundOfGame")
-                        val updateScore = UpdateScore()
-                        updateScore.updateStatus2AndCurrent(firstRoomRefDoc)
                         val current = ( currentPlayerField.toInt() + 1 ) / 2
                         if(player == 1){
 
@@ -341,6 +342,7 @@ class MainActivity : AppCompatActivity(), RematchMethods.RematchListener, Fireba
             putExtra("email", playerEmail)
             putExtra("tokens", playerToken) //???
             putExtra("roundOfGame", (roundOfGame.toInt() + 1).toString())
+            putExtra("numberOfPlayers", (numberOfPlayers.toInt() / 2).toString() )
         }
         startActivity(intent)
     }

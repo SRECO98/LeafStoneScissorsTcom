@@ -18,7 +18,7 @@ import com.google.firebase.firestore.ListenerRegistration
 
 class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
 
-    private val NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = "4"
+    private var NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = "4"
     private lateinit var buttonStatsTournament: AppCompatButton
     private lateinit var listenerToStatus: ListenerToStatus
     val groupTournament: GroupTournament = GroupTournament()
@@ -67,9 +67,11 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
         if(skipOnce == "false"){ //When player is openning this activity as second round in tournament.
             currentFromMain = intent.extras?.getString("current") ?: ""
             roundOfGame = intent.extras?.getString("roundOfGame") ?: ""
+            NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP = intent.extras?.getString("numberOfPlayers") ?: ""
             Log.i("TAG", "currentFromMain $currentFromMain") //Test showed good result
-            val numberOfPlayers: String = ( ( NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP.toInt() / 2)).toString()
-            if(numberOfPlayers.toInt() == 1){
+            Log.i("TAG", "Number of players is: $NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP")
+
+            if(NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP.toInt() == 1){
                 // do dialog winner of tournament
             }else{
                 val documentPath = intent.getStringExtra("roomsRef")!!
@@ -80,7 +82,7 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
                 buttonStatsTournament.isVisible = true
                 buttonStartGame.isEnabled = false
                 buttonStartGameGroupComp.isEnabled = false
-                groupTournament.buttonTourGameSecondOpen(playerName, roomsRefFromMain, (NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP.toInt() / 2).toString(), currentFromMain, listenerToStatus)
+                groupTournament.buttonTourGameSecondOpen(playerName, roomsRefFromMain, NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, currentFromMain, listenerToStatus)
             }
         }else{
             roundOfGame = "1"
@@ -101,6 +103,7 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
             textViewConnecting.isVisible = true
             buttonStartGame.isEnabled = false
             buttonStartGameGroupComp.isEnabled = false
+
             groupTournament.buttonTourGameFirstOpen(playerName, db.collection("groupRooms"), NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP, listenerToStatus)
         }
 
@@ -215,6 +218,7 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
                     intent.putExtra("current", currentSend)
                     intent.putExtra("score_ref", firstRoomRefDoc.path)
                     intent.putExtra("roundOfGame", roundOfGame)
+                    intent.putExtra("numberOfPlayers", NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP)
                     startActivity(intent)
                     finish()
                 }
@@ -266,6 +270,7 @@ class StartActivity : AppCompatActivity(), ListenerToStatus.MatchmakeTwoPlayers{
             putExtra("current", currentSend)
             putExtra("score_ref", firstRoomRefDoc.path)
             putExtra("roundOfGame", roundOfGame)
+            putExtra("numberOfPlayers", NUMBER_OF_PLAYERS_INSIDE_COMP_GROUP)
             Log.i("TAG4", "vALUE OF PLAYER 1 NAME $playerName")
             Log.i("TAG4", "vALUE OF PLAYER 2 NAME $player2NameFromFB")
         }
